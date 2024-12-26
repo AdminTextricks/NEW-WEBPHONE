@@ -7,16 +7,13 @@ import { FaDeleteLeft } from "react-icons/fa6";
 import { CallItem } from "../data/calls";
 import { useDispatch } from "react-redux";
 import { handleCallClicked } from "../redux/sessionCall/actions";
-import { name } from "jssip";
 
 interface AudioCallModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: CallItem | null;
-  isCall: boolean;
 }
 
-const DialPadModal = ({ isOpen, onClose, user }: AudioCallModalProps) => {
+const DialPadModal = ({ isOpen, onClose }: AudioCallModalProps) => {
   const dispatch = useDispatch();
 
   const [input, setInput] = useState("");
@@ -47,6 +44,7 @@ const DialPadModal = ({ isOpen, onClose, user }: AudioCallModalProps) => {
   };
 
   const handleClick = (e: { preventDefault: () => void }) => {
+    if(!input) return;
     e.preventDefault();
     const call_detail = {
       number: input,
@@ -211,7 +209,7 @@ const DialPadModal = ({ isOpen, onClose, user }: AudioCallModalProps) => {
         <div className="p-4 bg-soft-primary mt-n4">
           <div className="mt-4 text-center">
             <h5 className="font-size-18 mb-0 text-truncate">
-              {user ? `${user.number}` : ""}
+              {/* {user ? `${user.number}` : ""} */}
             </h5>
           </div>
         </div>

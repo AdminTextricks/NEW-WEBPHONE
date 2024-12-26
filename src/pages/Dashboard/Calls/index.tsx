@@ -47,15 +47,11 @@ const Index = (props: IndexProps) => {
 
   const [callsList, setCallsList] = useState([]);
   const [isOpenAudioModal, setIsOpenAudioModal] = useState<boolean>(false);
-  const [user, setUser] = useState<null | CallItem>(null);
-  const [isCall, setIsCall] = useState(false);
 
   const onOpenAudio = () => {
-    // setUser(call);
     setIsOpenAudioModal(true);
   };
   const onCloseAudio = () => {
-    // setUser(null);
     setIsOpenAudioModal(false);
   };
 
@@ -66,12 +62,7 @@ const Index = (props: IndexProps) => {
   return (
     <div className="position-relative">
       {getCallsLoading && <Loader />}
-      <DialPadModal
-        isOpen={isOpenAudioModal}
-        onClose={onCloseAudio}
-        user={user}
-        isCall={isCall}
-      />
+      <DialPadModal isOpen={isOpenAudioModal} onClose={onCloseAudio} />
       <div
         className="px-4 pt-4"
         style={{
@@ -117,6 +108,21 @@ const Index = (props: IndexProps) => {
               <Call call={call} key={key} />
             ))}
         </ul>
+
+        {callsList?.length === 0 && (
+          <div
+            className="rounded p-4 text-center border-top"
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              height: "60vh",
+              flexDirection: "column",
+            }}
+          >
+            <i className="bx bx-info-circle fs-1 mb-3" />
+            <div>No records found.</div>
+          </div>
+        )}
       </AppSimpleBar>
     </div>
   );

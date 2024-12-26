@@ -4,8 +4,13 @@ import imagePlaceholder from "../assets/images/users/user-dummy-img.jpg";
 import { FiPhone } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { formatTimer } from "../utils";
-import { useAppSelector } from "../redux/hook";
 import { selectElapsedTime } from "../redux/sessionCall/itilities";
+import { useRedux } from "../hooks";
+import { useSelector } from "react-redux";
+import { CiNoWaitingSign } from "react-icons/ci";
+import { FaPhone, FaPhoneSlash } from "react-icons/fa6";
+import { useDispatch } from "react-redux";
+import { setWaitBtnClicked } from "../redux/sessionCall/actions";
 
 interface AudioCallModalProps {
   isOpen: boolean;
@@ -19,13 +24,10 @@ interface AudioCallModalProps {
 const handleAudioOutput = async () => {
   const audioElement: any = document.getElementById("remoteAudio");
 
-  // Check if the browser supports setSinkId
   if (typeof audioElement.setSinkId === "function") {
     try {
       // Detect mobile or desktop
       const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-      console.log(isMobile);
 
       // Get all available audio devices
       const devices = await navigator.mediaDevices.enumerateDevices();
@@ -40,7 +42,6 @@ const handleAudioOutput = async () => {
         );
         if (speakerDevice) {
           await audioElement.setSinkId(speakerDevice.deviceId);
-          console.log("Audio set to speaker on mobile");
         } else {
           console.warn("No speaker device found for mobile");
         }
@@ -48,7 +49,6 @@ const handleAudioOutput = async () => {
         // Use the default device for desktop
         if (audioOutputDevices.length > 0) {
           await audioElement.setSinkId(audioOutputDevices[0].deviceId);
-          console.log("Audio set to desktop speaker");
         }
       }
     } catch (error) {
@@ -66,10 +66,24 @@ const AudioCallModal = ({
   setSession,
   incomingSession,
 }: AudioCallModalProps) => {
+  const dispatch = useDispatch();
+  const { isCallWaiting } = useSelector((state: any) => ({
+    isCallWaiting: state.CallHistory.isCallWaiting
+  }));
+  const { useAppSelector } = useRedux();
+
   const elapsedTime = useAppSelector(selectElapsedTime);
   const audioContext = new (window.AudioContext || window.BaseAudioContext)();
 
   const [incomingCalling, setIncomingCalling] = useState(true);
+
+  const { callData } = useAppSelector((state: any) => ({
+    callData: state.CallHistory.callData,
+  }));
+
+  const handleClickWaitingBtn = () => {
+    dispatch(setWaitBtnClicked(!isCallWaiting));
+  }
 
   const handleHangup = () => {
     if (session) {
@@ -111,7 +125,6 @@ const AudioCallModal = ({
 
     return () => {
       if (incomingSession) {
-        console.log(incomingSession?.connection);
         incomingSession?.connection?.removeEventListener(
           "track",
           startListening,
@@ -141,9 +154,34 @@ const AudioCallModal = ({
           <h4
             className={`${!incomingCalling ? "none" : "block blinking-icon"}`}
           >
-            Incoming...
+            {user?.direction === "incoming" ? "Calling from" : "Calling to"}
           </h4>
-          {!incomingCalling && formatTimer(elapsedTime)}
+          <div className="mt-4 text-center">
+            {user?.direction === "incoming" ? (
+              <>
+                <h5 className="font-size-18 mb-0 text-truncate">
+                  {user ? `${user.number}` : ""}
+                </h5>
+                <h6 className="font-size-15 mb-0 text-truncate">
+                  {user ? `${user.name}` : ""}
+                </h6>
+              </>
+            ) : (
+              <>
+                <h5 className="font-size-18 mb-0 text-truncate">
+                  {callData ? `${callData.number}` : ""}
+                </h5>
+                <h6 className="font-size-15 mb-0 text-truncate">
+                  {callData ? `${callData.name}` : ""}
+                </h6>
+              </>
+            )}
+          </div>
+
+          <span className={`${elapsedTime !== 0 ? "hidden" : "block"}`}>
+            {elapsedTime !== 0 && formatTimer(elapsedTime)}
+          </span>
+
           <div className="d-flex justify-content-center align-items-center mt-4">
             <div className="avatar-md h-auto">
               <Button
@@ -189,44 +227,82 @@ const AudioCallModal = ({
               </h5>
             </div>
           </div>
+          <div className="d-flex justify-content-center align-items-center">
+            <div className="avatar-md h-auto">
+              <Button
+                color="light"
+                type="button"
+                className="avatar-sm rounded-circle"
+                onClick={handleClickWaitingBtn}
+              >
+                <span className="avatar-title bg-transparent text-muted font-size-20">
+                  {isCallWaiting ? (
+                    <i className="mdi mdi-phone-in-talk" style={{
+                      color: 'green'
+                    }}></i>
+                  ) : (
+                    <i className="mdi mdi-phone-minus"></i>
+                  )}
 
-          <div className="mt-4">
-            <Button
-              type="button"
-              className="btn btn-danger avatar-md call-close-btn rounded-circle"
-              color="danger"
-              onClick={handleHangup}
-            >
-              <span className="avatar-title bg-transparent font-size-24">
-                <i className="mdi mdi-phone-hangup"></i>
-              </span>
-            </Button>
-            <Button
-              type="button"
-              className="btn btn-danger avatar-md call-close-btn rounded-circle"
-              color="primary"
-              onClick={handleAccept}
-            >
-              <span className="avatar-title bg-transparent font-size-24">
-                <FiPhone />
-              </span>
-            </Button>
+                </span>
+              </Button>
+              <h5 className="font-size-11 text-uppercase text-waiting mt-2">
+                Waiting
+              </h5>
+            </div>
+
           </div>
+
+
+
+          {user?.direction === "incoming" && (
+            <div className="mt-4 d-flex gap-4 justify-content-center">
+              <Button
+                type="button"
+                className="btn btn-danger avatar-md call-close-btn rounded-circle"
+                color="danger"
+                onClick={handleHangup}
+              >
+                <span className="avatar-title bg-transparent font-size-24">
+                  <i className="mdi mdi-phone-hangup"></i>
+                </span>
+              </Button>
+              <Button
+                type="button"
+                className="btn btn-danger avatar-md call-close-btn rounded-circle"
+                color="primary"
+                onClick={handleAccept}
+              >
+                <span className="avatar-title bg-transparent font-size-24">
+                  <FiPhone />
+                </span>
+              </Button>
+            </div>
+          )}
+
+          {user?.direction === "outgoing" && (
+            <div className="mt-4">
+              <Button
+                type="button"
+                className="btn btn-danger avatar-md call-close-btn rounded-circle"
+                color="danger"
+                onClick={handleHangup}
+              >
+                <span className="avatar-title bg-transparent font-size-24">
+                  <i className="mdi mdi-phone-hangup"></i>
+                </span>
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="p-4 bg-soft-primary mt-n4">
-          <div className="mt-4 text-center">
-            <h5 className="font-size-18 mb-0 text-truncate">
-              {user ? `${user.number}` : ""}
-            </h5>
-            <h6 className="font-size-15 mb-0 text-truncate">
-              {user ? `${user.name}` : ""}
-            </h6>
-          </div>
+          <div className="mt-4 text-center"></div>
         </div>
+
         <audio id="remoteAudio" autoPlay></audio>
       </ModalBody>
-    </Modal>
+    </Modal >
   );
 };
 

@@ -10,6 +10,7 @@ import {
   DropdownMenu,
   NavLink,
   UncontrolledTooltip,
+  Badge,
 } from "reactstrap";
 import { createSelector } from "reselect";
 // hooks
@@ -24,11 +25,13 @@ import LightDarkMode from "../../components/LightDarkMode";
 
 //images
 import avatar1 from "../../assets/images/users/avatar-1.jpg";
+import classnames from "classnames";
 
 // menu
 import { MENU_ITEMS, MenuItemType } from "./menu";
 import { useSelector } from "react-redux";
 import { FaCircleUser } from "react-icons/fa6";
+import axios from "axios";
 
 const LogoLightSVG = () => {
   return (
@@ -108,58 +111,91 @@ const MenuNavItem = ({ item, selectedTab, onChangeTab }: MenuNavItemProps) => {
 };
 
 interface ProfileDropdownMenuProps {
+  layoutMode: string;
+  onChangeLayoutMode: () => void;
   isActive: false;
   onChangeTab: (
     id: TABS.CALLS | TABS.CHAT | TABS.CONTACTS | TABS.USERS,
   ) => void;
 }
+
 const ProfileDropdownMenu = ({
+  onChangeLayoutMode,
+  layoutMode,
   onChangeTab,
   isActive,
 }: ProfileDropdownMenuProps) => {
+  const userData = useSelector((state: any) => state.Login);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
   const toggle = () => setDropdownOpen(!dropdownOpen);
+
+  const handleClickLogout = async () => {
+    try {
+      await axios.get(
+        `https://pbxlivebackend.callanalog.com/public/api/UnregisterSip/${userData?.user?.name}`
+      );
+    } catch (error) {
+      console.error("Error during logout:", error);
+    } finally {
+      localStorage.removeItem('user');
+      window.location.reload();
+    }
+  };
+
 
   return (
     <Dropdown
       nav
       isOpen={dropdownOpen}
-      className="profile-user-dropdown"
+      className="profile-user-dropdown mt-auto"
       toggle={toggle}
     >
       <DropdownToggle nav className="bg-transparent position-relative">
-        {/* <img
-        // src={avatar1}
-        alt="Profile"
-        className="profile-user rounded-circle"
-        style={{ width: '40px', height: '40px' }} // Inline style for the image size
-      /> */}
-        <FaCircleUser style={{ width: "40px", height: "40px" }} />
-        <span
-          className={` ${isActive ? "bg-success" : "bg-danger"} rounded-circle`}
-          style={{
-            position: "absolute",
-            width: "12px",
-            height: "12px",
-            top: "-2px", // Slightly above the image
-            right: "-2px", // Slightly to the right of the image
-            transform: "translate(-100%, 100%)",
-            border: "2px solid white", // Optional: adds a border to separate from the image
-          }}
-        ></span>
+        <div style={{ position: "relative", display: "inline-block" }}>
+          <div
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <FaCircleUser
+              // className="username"
+              style={{ width: "40px", height: "40px" }}
+            />
+          </div>
+          <div
+            className="blinking-icon"
+            style={{
+              position: "absolute",
+              bottom: "2px",
+              right: "2px",
+              width: "10px",
+              height: "10px",
+              backgroundColor: isActive ? "#00FF54" : "#ef0808",
+              borderRadius: "50%",
+              opacity: 1
+            }}
+          ></div>
+        </div>
       </DropdownToggle>
 
       <DropdownMenu>
-        {/* <DropdownItem
-          className="d-flex align-items-center justify-content-between"
-          onClick={() => onChangeTab(TABS.USERS)}
-        >
-          Profile <i className="bx bx-user-circle text-muted ms-1"></i>
-        </DropdownItem> */}
+        <LightDarkMode
+          title="Mode"
+          layoutMode={layoutMode}
+          onChangeLayoutMode={onChangeLayoutMode}
+        />
         <DropdownItem
-          className="d-flex align-items-center justify-content-between"
+          className="d-flex cursor-pointer align-items-center justify-content-between"
           tag="a"
-          href="/logout"
+          onClick={handleClickLogout}
+        // href="/logout"
         >
           Log out <i className="bx bx-log-out-circle text-muted ms-1"></i>
         </DropdownItem>
@@ -217,12 +253,17 @@ const SideMenu = ({ onChangeLayoutMode }: any) => {
             />
           ))}
 
-          <LightDarkMode
+          {/* <LightDarkMode
             layoutMode={layoutMode}
             onChangeLayoutMode={onChangeLayoutMode}
-          />
+          /> */}
 
-          <ProfileDropdownMenu isActive={isActive} onChangeTab={onChangeTab} />
+          <ProfileDropdownMenu
+            layoutMode={layoutMode}
+            onChangeLayoutMode={onChangeLayoutMode}
+            isActive={isActive}
+            onChangeTab={onChangeTab}
+          />
         </Nav>
       </div>
     </div>

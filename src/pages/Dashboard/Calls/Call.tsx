@@ -10,9 +10,10 @@ import "../../../assets/scss/custom.css";
 import { calculateTimeDifference } from "../../../utils";
 import { useDispatch } from "react-redux";
 import { handleCallClicked } from "../../../redux/sessionCall/actions";
+import { useSelector } from "react-redux";
 
 interface CallProps {
-  call: CallItem;
+  call: any;
 }
 
 const Call = ({ call }: CallProps) => {
@@ -47,7 +48,7 @@ const Call = ({ call }: CallProps) => {
             <div className="text-muted font-size-12 text-truncate">
               {call.direction === "incoming" ? (
                 <>
-                  {call.status === "missedcall" ? (
+                  {call.causes === "Missed" ? (
                     <MdPhoneMissed className="text-danger align-center me-1" />
                   ) : (
                     <i className="ri-arrow-left-down-fill text-success align-bottom me-1"></i>
@@ -63,7 +64,7 @@ const Call = ({ call }: CallProps) => {
             <div className="d-flex align-items-center gap-3">
               <div>
                 <h5 className="mb-0 font-size-12 text-muted">
-                  {call.status === "missedcall" ? (
+                  {call.status === "Missed" ? (
                     ""
                   ) : (
                     <>
@@ -75,7 +76,7 @@ const Call = ({ call }: CallProps) => {
                 </h5>
               </div>
 
-              {call.status === "calling" ? (
+              {call.status === "ringing" ? (
                 <div>
                   <Button
                     color="link"

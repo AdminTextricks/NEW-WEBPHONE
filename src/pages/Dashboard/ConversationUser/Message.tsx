@@ -308,7 +308,6 @@ interface MessageProps {
   onSetReplyData: (reply: null | MessagesTypes | undefined) => void;
   isFromMe: boolean;
   onOpenForward: (message: MessagesTypes) => void;
-  isChannel: boolean;
   onDeleteImage: (messageId: string | number, imageId: string | number) => void;
   // onSetReplyImageData: () => void;
 }
@@ -319,7 +318,6 @@ const Message = ({
   onSetReplyData,
   isFromMe,
   onOpenForward,
-  isChannel,
   onDeleteImage,
 }: MessageProps) => {
   const { userProfile } = useProfile();
@@ -339,9 +337,9 @@ const Message = ({
   const isRead = message.meta.read;
   const isForwarded = message.meta.isForwarded;
   const channdelSenderFullname = message.meta.userData
-    ? `${message.meta.userData.firstName} ${message.meta.userData.lastName}`
+    ? `${message.meta.userData.agent_name}`
     : "-";
-  const fullName = isChannel ? channdelSenderFullname : chatUserFullName;
+  const fullName = chatUserFullName;
   const onDeleteMessage = () => {
     onDelete(message.mId);
   };

@@ -2,6 +2,7 @@ import {
   Call,
   CallsHistoryActionTypes,
   HANDLE_CALL_CLICKED,
+  IsCallBtnActionTypes,
   IsCallingActionTypes,
   START_TIMER,
   STOP_TIMER,
@@ -39,3 +40,13 @@ export const handleCallClicked = (data: any) => {
     payload: data,
   };
 };
+
+export const setWaitBtnClicked = (btn: boolean) => ({
+  type: IsCallBtnActionTypes.IS_WAITING,
+  payload: btn,
+});
+
+export const setConfernceBtnClicked = (btn: boolean) => ({
+  type: IsCallBtnActionTypes.IS_CONFERENCE,
+  payload: btn,
+});

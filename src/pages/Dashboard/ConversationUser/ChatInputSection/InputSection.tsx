@@ -8,7 +8,6 @@ interface InputSectionProps {
 }
 
 const InputSection = ({ value, onChange }: InputSectionProps) => {
-  // console.log("value",value)
   return (
     <div className="position-relative">
       <Input

@@ -77,7 +77,8 @@
   backdrop-filter: blur(7px);
   @media (max-width: 991.98px) {
     position: fixed;
-    background-color: rgba($white, 0.8);
+    // background-color: rgba($white, 0.8);
+    background-color: var(--#{$prefix}footer-bg);
   }
 
   .topbar-bookmark {

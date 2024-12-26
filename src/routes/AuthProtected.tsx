@@ -6,7 +6,7 @@ const AuthProtected = ({ children }: { children: React.ReactNode }) => {
   const isUserLogin = useSelector((state: any) => state.Login.isUserLogin);
 
   if (!isUserLogin) {
-    return <Navigate to="/auth-login" />;
+    return <Navigate to="/login" />;
   }
 
   return <>{children}</>;

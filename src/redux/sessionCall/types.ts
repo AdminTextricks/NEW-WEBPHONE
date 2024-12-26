@@ -7,6 +7,11 @@ export const IsCallingActionTypes = {
   IS_CALLING: "IS_CALLING",
 };
 
+export const IsCallBtnActionTypes = {
+  IS_WAITING: "IS_WAITING",
+  IS_CONFERENCE: "IS_CONFERENCE",
+};
+
 export const START_TIMER = "START_TIMER";
 export const STOP_TIMER = "STOP_TIMER";
 export const UPDATE_TIMER = "UPDATE_TIMER";

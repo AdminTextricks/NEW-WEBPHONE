@@ -8,18 +8,22 @@ const formateDate = (date: any, formate?: string) => {
 };
 export { formateDate };
 
-const calculateTimeDifference = (startTime: any, endTime: any) => {
-  const start: any = new Date(startTime);
-  const end: any = new Date(endTime);
-  const diff = Math.abs(end - start);
-
-  // Convert the difference
+const calculateTimeDifference = (startTime: string, endTime: string) => {
+  const parseDate = (dateString: string) => {
+    const [datePart, timePart, meridian] = dateString.split(" ");
+    const [day, month, year] = datePart.split("-").map(Number);
+    let [hours, minutes, seconds] = timePart.split(":").map(Number);
+    if (meridian.toLowerCase() === "pm" && hours !== 12) hours += 12;
+    if (meridian.toLowerCase() === "am" && hours === 12) hours = 0;
+    return new Date(year, month - 1, day, hours, minutes, seconds);
+  };
+  const start = parseDate(startTime);
+  const end = parseDate(endTime);
+  const diff = Math.abs(end.getTime() - start.getTime());
   const seconds = Math.floor((diff / 1000) % 60);
   const minutes = Math.floor((diff / (1000 * 60)) % 60);
   const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-  // Format the result
   let formattedTime = "";
   if (days > 0) formattedTime += `${days}D `;
   if (hours > 0 || days > 0)
@@ -29,7 +33,9 @@ const calculateTimeDifference = (startTime: any, endTime: any) => {
 
   return formattedTime;
 };
+
 export { calculateTimeDifference };
+
 
 const formatTimer = (elapsedTime: any) => {
   const days = Math.floor(elapsedTime / (24 * 3600));

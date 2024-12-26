@@ -39,7 +39,6 @@ const LockScreen = (props: LockScreenProps) => {
   } = methods;
 
   const onSubmitForm = (values: object) => {
-    // console.log(values);
   };
 
   // const { userProfile, loading } = useProfile();
@@ -91,7 +90,7 @@ const LockScreen = (props: LockScreenProps) => {
               <p>
                 Not you ? return{" "}
                 <Link
-                  to="/auth-login"
+                  to="/login"
                   className="fw-medium text-decoration-underline"
                 >
                   {" "}

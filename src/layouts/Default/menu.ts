@@ -18,13 +18,13 @@ const MENU_ITEMS: MenuItemType[] = [
     className: "d-none d-lg-block",
     tabId: TABS.USERS,
   },
-  {
-    id: 2,
-    key: "pills-chat-tab",
-    icon: "bx bx-conversation",
-    tooltipTitle: "Chats",
-    tabId: TABS.CHAT,
-  },
+  // {
+  //   id: 2,
+  //   key: "pills-chat-tab",
+  //   icon: "bx bx-conversation",
+  //   tooltipTitle: "Chats",
+  //   tabId: TABS.CHAT,
+  // },
   {
     id: 3,
     key: "pills-contacts-tab",

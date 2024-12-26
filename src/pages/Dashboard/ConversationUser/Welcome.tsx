@@ -1,10 +1,8 @@
 import React from "react";
 import { Button, Col, Row } from "reactstrap";
 
-const Welcome = ({ onChangeClick }: any) => {
-  const handleClick = () => {
-    onChangeClick();
-  };
+const Welcome = () => {
+
   return (
     <React.Fragment>
       <div className="chat-welcome-section">
@@ -24,7 +22,6 @@ const Welcome = ({ onChangeClick }: any) => {
               </p>
               <Button
                 type="button"
-                onClick={handleClick}
                 className="btn btn-primary w-lg"
               >
                 Get Started

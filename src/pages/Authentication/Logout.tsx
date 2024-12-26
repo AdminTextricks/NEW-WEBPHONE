@@ -21,7 +21,7 @@ const Logout = (props: any) => {
   }, [dispatch]);
 
   // if (isUserLogout) {
-  //   return <Redirect to="/auth-login" />;
+  //   return <Redirect to="/login" />;
   // }
 
   return (
@@ -42,7 +42,7 @@ const Logout = (props: any) => {
               </p>
               <div className="mt-4">
                 <Link
-                  to="/auth-login"
+                  to="/login"
                   className="btn btn-primary w-100 waves-effect waves-light"
                 >
                   Sign In

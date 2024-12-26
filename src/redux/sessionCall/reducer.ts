@@ -4,6 +4,7 @@ import {
   CallsHistoryActionTypes,
   HANDLE_CALL_CLICKED,
   IsCallingActionTypes,
+  IsCallBtnActionTypes,
   START_TIMER,
   STOP_TIMER,
   UPDATE_TIMER,
@@ -15,7 +16,9 @@ interface SessionCallState {
   current_callers: Call[];
   queue_callers: Call[];
   elapsedTime: any;
-  callData: any;
+  callData: {};
+  isCallWaiting: Boolean;
+  isCallConference: Boolean;
 }
 
 const initialState: SessionCallState = {
@@ -24,7 +27,9 @@ const initialState: SessionCallState = {
   current_callers: [],
   queue_callers: [],
   elapsedTime: 0,
-  callData: null,
+  callData: {},
+  isCallWaiting: false,
+  isCallConference: false,
 };
 
 export const SessionCallReducer = (state = initialState, action: any) => {
@@ -44,6 +49,10 @@ export const SessionCallReducer = (state = initialState, action: any) => {
       };
     case IsCallingActionTypes.IS_CALLING:
       return { ...state, getCallsLoading: action.payload };
+    case IsCallBtnActionTypes.IS_WAITING:
+      return { ...state, isCallWaiting: action.payload };
+    case IsCallBtnActionTypes.IS_CONFERENCE:
+      return { ...state, isCallConference: action.payload };
     case START_TIMER:
       return {
         ...state,

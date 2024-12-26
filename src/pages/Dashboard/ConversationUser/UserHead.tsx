@@ -34,13 +34,11 @@ interface ProfileImageProps {
   chatUserDetails: any;
   onCloseConversation: () => any;
   onOpenUserDetails: () => any;
-  isChannel: boolean;
 }
 const ProfileImage = ({
   chatUserDetails,
   onCloseConversation,
-  onOpenUserDetails,
-  isChannel,
+  onOpenUserDetails
 }: ProfileImageProps) => {
   // const fullName = !isChannel
   //   ? chatUserDetails.firstName
@@ -256,7 +254,6 @@ interface UserHeadProps {
   chatUserDetails: any;
   onOpenUserDetails: () => void;
   onDelete: () => void;
-  isChannel: boolean;
   onToggleArchive: () => void;
 }
 
@@ -264,7 +261,6 @@ const UserHead = ({
   chatUserDetails,
   onOpenUserDetails,
   onDelete,
-  isChannel,
   onToggleArchive,
 }: UserHeadProps) => {
   // global store
@@ -311,7 +307,6 @@ const UserHead = ({
             chatUserDetails={chatUserDetails}
             onCloseConversation={onCloseConversation}
             onOpenUserDetails={onOpenUserDetails}
-            isChannel={isChannel}
           />
         </Col>
         <Col sm={8} className="col-4">

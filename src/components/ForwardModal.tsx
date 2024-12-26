@@ -66,7 +66,7 @@ const ContactItem = ({
   onSelectContact,
   onSend,
 }: ContactItemProps) => {
-  const fullName = `${contact.firstName} ${contact.lastName}`;
+  const fullName = `${contact.agent_name}`;
   const onClick = () => {
     onSelectContact(contact.id, !selected);
     if (!selected) {

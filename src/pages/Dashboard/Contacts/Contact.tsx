@@ -1,32 +1,38 @@
 import { useState } from "react";
 import classnames from "classnames";
 
-import {
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
-} from "reactstrap";
+// import {
+//   Dropdown,
+//   DropdownToggle,
+//   DropdownMenu,
+//   DropdownItem,
+//   Button,
+// } from "reactstrap";
 
 import { ContactTypes } from "../../../data/contacts";
-import { BsChatText } from "react-icons/bs";
+// import { BsChatText } from "react-icons/bs";
 import { BiPhoneCall } from "react-icons/bi";
-import { TABS } from "../../../constants";
+// import { TABS } from "../../../constants";
 import { useRedux } from "../../../hooks";
-import { changeTab } from "../../../redux/actions";
+// import { changeTab } from "../../../redux/actions";
 import { handleCallClicked } from "../../../redux/sessionCall/actions";
+import {
+  getChatUserDetails,
+  getChatUserConversations,
+  changeSelectedChat,
+} from "../../../redux/actions";
 
 interface ContactItemProps {
   contact: ContactTypes;
-  onSelectChat: (id: string | number, isChannel?: boolean) => void;
+  onSelectChat: (number: string | number) => void;
 }
 
 const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
   const { dispatch } = useRedux();
 
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  // const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const toggle = () => setDropdownOpen(!dropdownOpen);
+  // const toggle = () => setDropdownOpen(!dropdownOpen);
 
   const agent_name = `${contact.agent_name}`;
   const callbackextension = `${contact.callbackextension}`;
@@ -41,11 +47,8 @@ const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
     "bg-pink",
     "bg-purple",
   ];
+  
   const [color] = useState(Math.floor(Math.random() * colors.length));
-
-  const handleClickChat = (value: string) => {
-    dispatch(changeTab(value));
-  };
 
   const handleClickCall = (call: any) => {
     const call_detail = {
@@ -53,6 +56,12 @@ const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
       name: call.agent_name,
     };
     dispatch(handleCallClicked(call_detail));
+  };
+
+  const handleSelectUser = (id: any) => {
+    dispatch(getChatUserDetails(id));
+    dispatch(getChatUserConversations(id));
+    dispatch(changeSelectedChat(id));
   };
 
   return (
@@ -81,7 +90,10 @@ const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
             )}
           </div>
         </div>
-        <div className="flex-grow-1" onClick={() => onSelectChat(contact.id)}>
+        <div
+          className="flex-grow-1"
+          onClick={() => handleSelectUser(contact.callbackextension)}
+        >
           <h5 className="font-size-14 m-0">{agent_name}</h5>
           <h5 className="font-size-14 m-0">
             {name}{" "}
@@ -89,7 +101,14 @@ const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
           </h5>
         </div>
         <div className="flex-shrink-0">
-          <Dropdown isOpen={dropdownOpen} toggle={toggle}>
+          <div onClick={() => handleClickCall(contact)}>
+            <BiPhoneCall
+              size={20}
+              className="bx bxs-message-alt-detail text-primary m-1"
+            />
+          </div>
+
+          {/* <Dropdown isOpen={dropdownOpen} toggle={toggle}>
             <DropdownToggle tag="a" className="text-mute">
               <i className="bx bx-dots-vertical-rounded align-middle"></i>
             </DropdownToggle>
@@ -107,7 +126,7 @@ const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
                 Chat <BsChatText />
               </DropdownItem>
             </DropdownMenu>
-          </Dropdown>
+          </Dropdown> */}
         </div>
       </div>
     </li>

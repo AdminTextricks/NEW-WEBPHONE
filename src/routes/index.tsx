@@ -19,7 +19,7 @@ const Index = () => {
             path={route.path}
             element={
               isUserLogin ? (
-                <Navigate to="/dashboard" />
+                <Navigate to="/" />
               ) : (
                 <NonAuthLayout>{route.component}</NonAuthLayout>
               )

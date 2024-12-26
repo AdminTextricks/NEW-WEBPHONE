@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from "react";
-
-// hooks
+import { useEffect, useState } from "react";
 import { useRedux } from "../../../hooks/index";
 import { createSelector } from "reselect";
-// actions
 import {
   toggleUserDetailsTab,
   getChatUserConversations,
@@ -16,24 +13,13 @@ import {
   toggleArchiveContact,
 } from "../../../redux/actions";
 
-// hooks
 import { useProfile } from "../../../hooks";
-
-// components
 import UserHead from "./UserHead";
 import Conversation from "./Conversation";
 import ChatInputSection from "./ChatInputSection/index";
-
-// interface
 import { MessagesTypes } from "../../../data/messages";
 
-// dummy data
-import { pinnedTabs } from "../../../data/index";
-
-interface IndexProps {
-  isChannel: boolean;
-}
-const Index = ({ isChannel }: IndexProps) => {
+const Index = () => {
   // global store
   const { dispatch, useAppSelector } = useRedux();
 
@@ -64,14 +50,8 @@ const Index = ({ isChannel }: IndexProps) => {
     dispatch(toggleUserDetailsTab(true));
   };
 
-  /*
-  hooks
-  */
   const { userProfile } = useProfile();
 
-  /*
-  reply handeling
-  */
   const [replyData, setReplyData] = useState<
     null | MessagesTypes | undefined
   >();
@@ -79,9 +59,6 @@ const Index = ({ isChannel }: IndexProps) => {
     setReplyData(reply);
   };
 
-  /*
-  send message
-  */
   const onSend = (data: any) => {
     let params: any = {
       text: data.text && data.text,
@@ -100,17 +77,15 @@ const Index = ({ isChannel }: IndexProps) => {
     }
 
     dispatch(onSendMessage(params));
-    if (!isChannel) {
-      setTimeout(() => {
-        dispatch(receiveMessage(chatUserDetails.id));
-      }, 1000);
-      setTimeout(() => {
-        dispatch(readMessage(chatUserDetails.id));
-      }, 1500);
-      setTimeout(() => {
-        dispatch(receiveMessageFromUser(chatUserDetails.id));
-      }, 2000);
-    }
+    setTimeout(() => {
+      dispatch(receiveMessage(chatUserDetails.id));
+    }, 1000);
+    setTimeout(() => {
+      dispatch(readMessage(chatUserDetails.id));
+    }, 1500);
+    setTimeout(() => {
+      dispatch(receiveMessageFromUser(chatUserDetails.id));
+    }, 2000);
     setReplyData(null);
   };
 
@@ -151,7 +126,6 @@ const Index = ({ isChannel }: IndexProps) => {
         chatUserDetails={chatUserDetails}
         onOpenUserDetails={onOpenUserDetails}
         onDelete={onDeleteUserMessages}
-        isChannel={isChannel}
         onToggleArchive={onToggleArchive}
       />
       <Conversation
@@ -159,7 +133,6 @@ const Index = ({ isChannel }: IndexProps) => {
         chatUserDetails={chatUserDetails}
         onDelete={onDeleteMessage}
         onSetReplyData={onSetReplyData}
-        isChannel={isChannel}
       />
       <ChatInputSection
         onSend={onSend}
