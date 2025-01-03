@@ -87,6 +87,7 @@ interface MenuNavItemProps {
   ) => void;
 }
 const MenuNavItem = ({ item, selectedTab, onChangeTab }: MenuNavItemProps) => {
+  
   const onClick = () => {
     onChangeTab(item.tabId);
   };
@@ -100,7 +101,7 @@ const MenuNavItem = ({ item, selectedTab, onChangeTab }: MenuNavItemProps) => {
           role="tab"
           onClick={onClick}
         >
-          <i className={item.icon}></i>
+          <i className={item.icon} style={{ fontSize: 30 }}></i>
         </NavLink>
       </NavItem>
       <UncontrolledTooltip target={`${item.key}-container`} placement="right">
@@ -137,7 +138,6 @@ const ProfileDropdownMenu = ({
         `https://pbxlivebackend.callanalog.com/public/api/UnregisterSip/${userData?.user?.name}`
       );
     } catch (error) {
-      console.error("Error during logout:", error);
     } finally {
       localStorage.removeItem('user');
       window.location.reload();

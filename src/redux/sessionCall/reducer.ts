@@ -8,6 +8,9 @@ import {
   START_TIMER,
   STOP_TIMER,
   UPDATE_TIMER,
+  HANDLE_CALL_CONFERENCE_CLICKED,
+  HANDLE_CHANGE_DTMF_NUMBER,
+  HANDLE_CALL_TRANSFER_CLICKED,
 } from "./types";
 
 interface SessionCallState {
@@ -18,7 +21,8 @@ interface SessionCallState {
   elapsedTime: any;
   callData: {};
   isCallWaiting: Boolean;
-  isCallConference: Boolean;
+  dtmfSequence: any;
+  blindNumber: any;
 }
 
 const initialState: SessionCallState = {
@@ -29,7 +33,8 @@ const initialState: SessionCallState = {
   elapsedTime: 0,
   callData: {},
   isCallWaiting: false,
-  isCallConference: false,
+  dtmfSequence: null,
+  blindNumber: null,
 };
 
 export const SessionCallReducer = (state = initialState, action: any) => {
@@ -51,8 +56,6 @@ export const SessionCallReducer = (state = initialState, action: any) => {
       return { ...state, getCallsLoading: action.payload };
     case IsCallBtnActionTypes.IS_WAITING:
       return { ...state, isCallWaiting: action.payload };
-    case IsCallBtnActionTypes.IS_CONFERENCE:
-      return { ...state, isCallConference: action.payload };
     case START_TIMER:
       return {
         ...state,
@@ -72,6 +75,21 @@ export const SessionCallReducer = (state = initialState, action: any) => {
       return {
         ...state,
         callData: action.payload,
+      };
+    case HANDLE_CHANGE_DTMF_NUMBER:
+      return {
+        ...state,
+        dtmfSequence: action.payload,
+      };
+    case HANDLE_CALL_CONFERENCE_CLICKED:
+      return {
+        ...state,
+        dtmfSequence: action.payload,
+      };
+    case HANDLE_CALL_TRANSFER_CLICKED:
+      return {
+        ...state,
+        blindNumber: action.payload,
       };
     default:
       return state;

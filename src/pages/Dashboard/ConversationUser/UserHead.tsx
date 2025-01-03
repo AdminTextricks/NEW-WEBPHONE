@@ -6,7 +6,6 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
-  Input,
   Button,
   Alert,
   UncontrolledTooltip,
@@ -19,17 +18,10 @@ import { useRedux } from "../../../hooks/index";
 
 // components
 import AudioCallModal from "../../../components/AudioCallModal";
-import VideoCallModal from "../../../components/VideoCallModal";
-import AddPinnedTabModal from "../../../components/AddPinnedTabModal";
-
-// interface
-import { PinTypes } from "../../../data/chat";
 
 // actions
 import { changeSelectedChat } from "../../../redux/actions";
 
-// constants
-import { STATUS_TYPES } from "../../../constants";
 interface ProfileImageProps {
   chatUserDetails: any;
   onCloseConversation: () => any;
@@ -40,11 +32,6 @@ const ProfileImage = ({
   onCloseConversation,
   onOpenUserDetails
 }: ProfileImageProps) => {
-  // const fullName = !isChannel
-  //   ? chatUserDetails.firstName
-  //     ? `${chatUserDetails.firstName} ${chatUserDetails.lastName}`
-  //     : "-"
-  //   : chatUserDetails.name;
   const fullName = `--`;
 
   const colors = [
@@ -59,7 +46,6 @@ const ProfileImage = ({
   const [color] = useState(Math.floor(Math.random() * colors.length));
 
   const isOnline = true;
-  // chatUserDetails.status && chatUserDetails.status === STATUS_TYPES.ACTIVE;
 
   return (
     <div className="d-flex align-items-center">
@@ -94,18 +80,7 @@ const ProfileImage = ({
                 <span
                   className={classnames(
                     "user-status",
-                    {
-                      "bg-success":
-                        chatUserDetails.status === STATUS_TYPES.ACTIVE,
-                    },
-                    {
-                      "bg-warning":
-                        chatUserDetails.status === STATUS_TYPES.AWAY,
-                    },
-                    {
-                      "bg-danger":
-                        chatUserDetails.status === STATUS_TYPES.DO_NOT_DISTURB,
-                    },
+                    "bg-success"
                   )}
                 ></span>
               </>

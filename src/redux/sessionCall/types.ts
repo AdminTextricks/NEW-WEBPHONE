@@ -9,13 +9,17 @@ export const IsCallingActionTypes = {
 
 export const IsCallBtnActionTypes = {
   IS_WAITING: "IS_WAITING",
-  IS_CONFERENCE: "IS_CONFERENCE",
 };
 
 export const START_TIMER = "START_TIMER";
 export const STOP_TIMER = "STOP_TIMER";
 export const UPDATE_TIMER = "UPDATE_TIMER";
 export const HANDLE_CALL_CLICKED = "HANDLE_CALL_CLICKED";
+
+export const HANDLE_CHANGE_DTMF_NUMBER = "HANDLE_CHANGE_DTMF_NUMBER";
+
+export const HANDLE_CALL_CONFERENCE_CLICKED = "HANDLE_CALL_CONFERENCE_CLICKED";
+export const HANDLE_CALL_TRANSFER_CLICKED = "HANDLE_CALL_TRANSFER_CLICKED";
 
 export const RuningCallingActionTypes = {
   CURRENT_CALLERS: "CURRENT_CALLERS",

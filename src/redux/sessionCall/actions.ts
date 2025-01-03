@@ -2,6 +2,9 @@ import {
   Call,
   CallsHistoryActionTypes,
   HANDLE_CALL_CLICKED,
+  HANDLE_CALL_CONFERENCE_CLICKED,
+  HANDLE_CALL_TRANSFER_CLICKED,
+  HANDLE_CHANGE_DTMF_NUMBER,
   IsCallBtnActionTypes,
   IsCallingActionTypes,
   START_TIMER,
@@ -41,12 +44,28 @@ export const handleCallClicked = (data: any) => {
   };
 };
 
+export const handleChangeDtmfNumber = (data: any) => {
+  return {
+    type: HANDLE_CHANGE_DTMF_NUMBER,
+    payload: data,
+  };
+};
+
+export const handleCallConferenceClicked = (data: any) => {
+  return {
+    type: HANDLE_CALL_CONFERENCE_CLICKED,
+    payload: data,
+  };
+};
+
+export const handleCallTransferClicked = (data: any) => {
+  return {
+    type: HANDLE_CALL_TRANSFER_CLICKED,
+    payload: data,
+  };
+};
+
 export const setWaitBtnClicked = (btn: boolean) => ({
   type: IsCallBtnActionTypes.IS_WAITING,
-  payload: btn,
-});
-
-export const setConfernceBtnClicked = (btn: boolean) => ({
-  type: IsCallBtnActionTypes.IS_CONFERENCE,
   payload: btn,
 });

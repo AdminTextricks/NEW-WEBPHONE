@@ -6,12 +6,10 @@ import { MdCallMissed, MdCallReceived } from "react-icons/md";
 import { MdCallMade } from "react-icons/md";
 
 interface ConversationProps {
-  callUserHistory?: any;
-  callUserDetails?: any;
+  callUserHistory: any;
 }
 const Conversation = ({
   callUserHistory,
-  callUserDetails,
 }: ConversationProps) => {
   const ref = useRef<any>();
 
@@ -35,6 +33,7 @@ const Conversation = ({
       ref.current.recalculate();
     }
   }, []);
+  
   useEffect(() => {
     if (callUserHistory) {
       scrollElement();
@@ -59,14 +58,6 @@ const Conversation = ({
               })}
             >
               <div className="conversation-list">
-                {/*<div className="chat-avatar">
-                  {call.direction === "outgoing" ? (
-                    <span>Me</span>
-                  ) : (
-                    <span>{callUserDetails?.agent_name || ""}</span>
-                  )}
-                </div> */}
-
                 <div className="user-chat-content">
                   <div className="ctext-wrap">
                     <div className="ctext-wrap-content">
@@ -111,14 +102,6 @@ const Conversation = ({
                     ) : (
                       <MdCallMade />
                     )}
-                    {/* <i
-                      className={classnames(
-                        "ri",
-                        "ri-share-forward-line",
-                        "align-middle",
-                        "me-1",
-                      )}
-                    ></i> */}
                     {call.startTime}
                   </span>
                 </div>
@@ -126,18 +109,6 @@ const Conversation = ({
             </li>
           );
         })}
-
-        {/* {(messages || []).map((message: MessagesTypes, key: number) => {
-          const isFromMe = message.meta.sender + "" === "";
-          return (
-            <Message
-              message={message}
-              key={key}
-              chatUserDetails={chatUserDetails}
-              isFromMe={isFromMe}
-            />
-          );
-        })} */}
       </ul>
     </AppSimpleBar>
   );

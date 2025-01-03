@@ -1,20 +1,7 @@
 import { useState } from "react";
 import classnames from "classnames";
-
-// import {
-//   Dropdown,
-//   DropdownToggle,
-//   DropdownMenu,
-//   DropdownItem,
-//   Button,
-// } from "reactstrap";
-
-import { ContactTypes } from "../../../data/contacts";
-// import { BsChatText } from "react-icons/bs";
 import { BiPhoneCall } from "react-icons/bi";
-// import { TABS } from "../../../constants";
 import { useRedux } from "../../../hooks";
-// import { changeTab } from "../../../redux/actions";
 import { handleCallClicked } from "../../../redux/sessionCall/actions";
 import {
   getChatUserDetails,
@@ -23,16 +10,13 @@ import {
 } from "../../../redux/actions";
 
 interface ContactItemProps {
-  contact: ContactTypes;
+  contact: any;
   onSelectChat: (number: string | number) => void;
 }
 
-const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
+const ContactItem = ({ contact }: ContactItemProps) => {
+
   const { dispatch } = useRedux();
-
-  // const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  // const toggle = () => setDropdownOpen(!dropdownOpen);
 
   const agent_name = `${contact.agent_name}`;
   const callbackextension = `${contact.callbackextension}`;
@@ -47,7 +31,7 @@ const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
     "bg-pink",
     "bg-purple",
   ];
-  
+
   const [color] = useState(Math.floor(Math.random() * colors.length));
 
   const handleClickCall = (call: any) => {
@@ -69,25 +53,17 @@ const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
       <div className="d-flex align-items-center">
         <div className="flex-shrink-0 me-2">
           <div className="avatar-xs">
-            {contact.profileImage ? (
-              <img
-                src={contact.profileImage}
-                alt=""
-                className="img-fluid rounded-circle"
-              />
-            ) : (
-              <span
-                className={classnames(
-                  "avatar-title",
-                  "rounded-circle",
-                  "font-size-10",
-                  "text-uppercase",
-                  colors[color],
-                )}
-              >
-                {/* {shortName} */}
-              </span>
-            )}
+            <span
+              className={classnames(
+                "avatar-title",
+                "rounded-circle",
+                "font-size-40",
+                "text-uppercase",
+                "bx bx-user",
+                colors[color],
+              )}
+            >
+            </span>
           </div>
         </div>
         <div
@@ -107,26 +83,6 @@ const ContactItem = ({ contact, onSelectChat }: ContactItemProps) => {
               className="bx bxs-message-alt-detail text-primary m-1"
             />
           </div>
-
-          {/* <Dropdown isOpen={dropdownOpen} toggle={toggle}>
-            <DropdownToggle tag="a" className="text-mute">
-              <i className="bx bx-dots-vertical-rounded align-middle"></i>
-            </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-end">
-              <DropdownItem
-                className="d-flex align-items-center justify-content-between"
-                onClick={() => handleClickCall(contact)}
-              >
-                Call <BiPhoneCall />
-              </DropdownItem>
-              <DropdownItem
-                className="d-flex align-items-center justify-content-between"
-                onClick={() => handleClickChat(TABS.CHAT)}
-              >
-                Chat <BsChatText />
-              </DropdownItem>
-            </DropdownMenu>
-          </Dropdown> */}
         </div>
       </div>
     </li>

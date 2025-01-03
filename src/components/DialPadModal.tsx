@@ -44,11 +44,11 @@ const DialPadModal = ({ isOpen, onClose }: AudioCallModalProps) => {
   };
 
   const handleClick = (e: { preventDefault: () => void }) => {
-    if(!input) return;
+    if (!input) return;
     e.preventDefault();
     const call_detail = {
       number: input,
-      name: input,
+      name: 'anonymous',
     };
     dispatch(handleCallClicked(call_detail));
     onClose();
@@ -69,7 +69,6 @@ const DialPadModal = ({ isOpen, onClose }: AudioCallModalProps) => {
             className="container text-center"
             style={{ maxWidth: "264px", marginTop: "30px" }}
           >
-            {/* Input Box */}
             <div className="input-group mb-3">
               <input
                 type="text"
@@ -87,12 +86,12 @@ const DialPadModal = ({ isOpen, onClose }: AudioCallModalProps) => {
                     color: "white",
                   }}
                   onMouseDown={() => {
-                    const timeoutId = setTimeout(handleLongClear, 1000); // Long press clears all
+                    const timeoutId = setTimeout(handleLongClear, 1000);
                     setClearTimeoutId(timeoutId);
                   }}
                   onMouseUp={() => {
                     clearTimeout(clearTimeoutId);
-                    handleClear(); // Single click clears one character
+                    handleClear();
                   }}
                   onMouseLeave={() => clearTimeout(clearTimeoutId)}
                 >
@@ -195,7 +194,7 @@ const DialPadModal = ({ isOpen, onClose }: AudioCallModalProps) => {
             </Button>
             <Button
               type="button"
-              className="btn btn-danger avatar-md call-close-btn rounded-circle"
+              className="btn btn-primary avatar-md call-close-btn rounded-circle"
               color="primary"
               onClick={handleClick}
             >
@@ -209,7 +208,6 @@ const DialPadModal = ({ isOpen, onClose }: AudioCallModalProps) => {
         <div className="p-4 bg-soft-primary mt-n4">
           <div className="mt-4 text-center">
             <h5 className="font-size-18 mb-0 text-truncate">
-              {/* {user ? `${user.number}` : ""} */}
             </h5>
           </div>
         </div>

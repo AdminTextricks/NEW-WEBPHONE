@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import classnames from "classnames";
 import { useSelector, useDispatch } from "react-redux";
-import { createSelector } from "reselect";
 import JsSIP, { WebSocketInterface } from "jssip";
 import { useRedux } from "../../hooks/index";
-import ConversationUser from "./ConversationUser/index";
-import UserProfileDetails from "./UserProfileDetails/index";
 import CallHistoryUser from "./CallsHistory/index";
 import Welcome from "./ConversationUser/Welcome";
 import Leftbar from "./Leftbar";
@@ -13,6 +10,8 @@ import axios from "axios";
 import moment from "moment";
 import {
   handleCallClicked,
+  handleCallConferenceClicked,
+  handleCallTransferClicked,
   setCallsHistory,
   setIsCalling,
   startTimer,
@@ -22,8 +21,12 @@ import {
 import AudioCallModal from "../../components/AudioCallModal";
 import store from "../../redux/store";
 import { getContacts } from "../../redux/actions";
-import FabButtonWithFade from "../../components/AddFloatButton";
 import DialPadModal from "../../components/DialPadModal";
+import ringSound from "../../assets/sound/ringSound.mp3";
+import outgoingRingtone from "../../assets/sound/outgoingRingtone.mp3";
+import dialTone from "../../assets/sound/dialSound.mp3";
+
+import { Howl, Howler } from "howler";
 
 const Index = () => {
   const { useAppSelector } = useRedux();
@@ -51,31 +54,57 @@ const Index = () => {
   const [isActive, setIsActive] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [session, setSession] = useState<any>(null);
+  const [isOpenDialModal, setIsOpenDialModal] = useState<boolean>(false);
+  const [micMute, setMicMute] = useState(false);
+  const [callHold, setCallHold] = useState(false);
+
+  const [isChannel, setIsChannel] = useState(false);
+  const [isTalking, setIsTalking] = useState(false);
+
+
+  const sound = new Howl({
+    src: [ringSound],
+    loop: true,
+  });
+
+  const outgoingRingSound = new Howl({
+    src: [outgoingRingtone],
+    loop: true,
+  });
+
+  const dialRingTone = new Howl({
+    src: [dialTone],
+    loop: true,
+  });
+
+  Howler.volume(0.1);
+
   const userAgentRef = useRef<any>(null);
-  const callingSessionRef = useRef(null);
+  const callingSessionRef = useRef<any>(null);
 
-  const isCallWaiting = useSelector((state: any) => ({
-    isCallWaiting: state.CallHistory.isCallWaiting
-  }));
-
-  const { getCallsLoading, callData, selectedChat } = useAppSelector(
-    (state: any) => ({
+  const { getCallsLoading, callData, selectedChat, blindNumber } =
+    useAppSelector((state: any) => ({
       getCallsLoading: state.CallHistory.getCallsLoading,
       callData: state.CallHistory.callData,
+      dtmfSequence: state.CallHistory.dtmfSequence,
+      blindNumber: state.CallHistory.blindNumber,
       selectedChat: state.Chats.selectedChat,
-    }),
-  );
+    }));
 
-  const isBusy = useSelector(
-    (state: any) => state.CallHistory.getCallsLoading
-  );
+  const isBusy = useSelector((state: any) => state.CallHistory.getCallsLoading);
 
   const { callDetail } = useSelector((state: any) => ({
     callDetail: state.CallHistory.callData,
   }));
 
   const onCloseAudio = () => {
+    dispatch(handleCallConferenceClicked(null));
     setUser(null);
+  };
+
+
+  const onCloseDialPad = () => {
+    setIsOpenDialModal(false);
   };
 
   useEffect(() => {
@@ -83,19 +112,17 @@ const Index = () => {
   }, [isBusy]);
 
   useEffect(() => {
+    dispatch(getContacts(userData?.user?.name));
+  }, []);
+
+  useEffect(() => {
     userAgentRef.current = userAgent;
 
-    userAgent.on("connecting", () => {
-      console.debug("Connecting...");
-    });
+    userAgent.on("connecting", () => { });
 
-    userAgent.on("connected", event => {
-      console.debug("User connected", event);
-    });
+    userAgent.on("connected", event => { });
 
-    userAgent.on("disconnected", () => {
-      console.debug("Disconnected");
-    });
+    userAgent.on("disconnected", () => { });
 
     userAgent.on("registered", () => {
       setIsActive(true);
@@ -141,35 +168,31 @@ const Index = () => {
         callingSessionRef.current = data.session;
         const incomingSession: any = callingSessionRef.current;
 
-        if (isBusyRef.current) {
-          console.log("No Waiting");
-
-          incomingSession.terminate();
-
-          return;
-
-          // incomingSession.terminate({ status_code: 486, reason_phrase: 'Busy Here' });
-          // const newCall = {
-          //   name:
-          //     data?.request?.from?._uri._user ==
-          //       data?.request?.from?._display_name
-          //       ? ""
-          //       : data?.request?.from?._uri._user,
-          //   number: data?.request?.from?._display_name,
-          //   id: incomingSession._id.substring(
-          //     0,
-          //     incomingSession._id.indexOf("@"),
-          //   ),
-          //   startTime: moment(new Date()).format("DD-MM-YYYY hh:mm:ss a"),
-          //   status: 'Missed',
-          //   causes: "Missed",
-          //   direction: "incoming",
-          // };
-          // dispatch(setCallsHistory(newCall));
-          // return;
-        }
-
         if (incomingSession.direction === "incoming") {
+          if (isBusyRef.current) {
+            incomingSession.terminate({
+              status_code: 486,
+              reason_phrase: "Busy Here",
+            });
+            const newCall = {
+              name:
+                data?.request?.from?._uri._user ==
+                  data?.request?.from?._display_name
+                  ? ""
+                  : data?.request?.from?._uri._user,
+              number: data?.request?.from?._display_name,
+              id: incomingSession._id.substring(
+                0,
+                incomingSession._id.indexOf("@"),
+              ),
+              startTime: moment(new Date()).format("DD-MM-YYYY hh:mm:ss a"),
+              status: "Missed",
+              causes: "Missed",
+              direction: "incoming",
+            };
+            dispatch(setCallsHistory(newCall));
+            return;
+          }
           const newCall = {
             name:
               data?.request?.from?._uri._user ==
@@ -189,6 +212,7 @@ const Index = () => {
           setUser(newCall);
           dispatch(setIsCalling(true));
           dispatch(setCallsHistory(newCall));
+          sound.play();
           incomingSession.on("accepted", () => {
             dispatch(startTimer());
             timerRef.current = setInterval(() => {
@@ -222,7 +246,12 @@ const Index = () => {
             };
             dispatch(setCallsHistory(newCall));
             setUser(newCall);
+            dispatch(handleCallTransferClicked(null));
+            sound.stop();
+            setIsChannel(true);
+            setIsTalking(true);
           });
+
           incomingSession.on("failed", (e: any) => {
             const newCall = {
               name:
@@ -246,7 +275,14 @@ const Index = () => {
             clearInterval(timerRef.current);
             dispatch(stopTimer());
             dispatch(handleCallClicked(null));
+            dispatch(handleCallTransferClicked(null));
+            setMicMute(false);
+            setCallHold(false);
+            sound.stop();
+            setIsChannel(false);
+            setIsTalking(false);
           });
+
           incomingSession.on("ended", (e: any) => {
             const newCall = {
               name:
@@ -269,9 +305,18 @@ const Index = () => {
             clearInterval(timerRef.current);
             dispatch(stopTimer());
             dispatch(handleCallClicked(null));
+            dispatch(handleCallTransferClicked(null));
+            setMicMute(false);
+            setCallHold(false);
+            sound.stop();
+            setIsChannel(false);
+            setIsTalking(false);
           });
 
         } else if (incomingSession.direction === "outgoing") {
+          dialRingTone.play();
+          setIsChannel(false);
+
           const outgoingCallDetails = {
             name: callDetail?.name || "",
             id: incomingSession._id,
@@ -285,6 +330,17 @@ const Index = () => {
           dispatch(setIsCalling(true));
           dispatch(setCallsHistory(outgoingCallDetails));
 
+          incomingSession.on("progress", (e: any) => {
+            if (e && e.progressTone) {
+              outgoingRingSound.stop();
+              dialRingTone.stop();
+              setIsChannel(true);
+            } else {
+              outgoingRingSound.play();
+              dialRingTone.stop();
+            }
+          });
+
           incomingSession.on("accepted", (e: any) => {
             dispatch(startTimer());
             timerRef.current = setInterval(() => {
@@ -295,6 +351,7 @@ const Index = () => {
                 dispatch(updateTimer(currentElapsedTime));
               });
             }, 1000);
+            setIsChannel(true);
             setSession(incomingSession);
             const remoteStream =
               incomingSession?.connection?.getRemoteStreams()[0];
@@ -311,6 +368,10 @@ const Index = () => {
             };
             dispatch(setCallsHistory(newCall));
             setUser(newCall);
+            dispatch(handleCallTransferClicked(null));
+            outgoingRingSound.stop();
+            dialRingTone.stop();
+            setIsTalking(true);
           });
 
           incomingSession.on("ended", (e: any) => {
@@ -328,6 +389,13 @@ const Index = () => {
             clearInterval(timerRef.current);
             dispatch(stopTimer());
             dispatch(handleCallClicked(null));
+            dispatch(handleCallTransferClicked(null));
+            setMicMute(false);
+            setCallHold(false);
+            outgoingRingSound.stop();
+            dialRingTone.stop();
+            setIsChannel(false);
+            setIsTalking(false);
           });
 
           incomingSession.on("failed", (e: any) => {
@@ -345,6 +413,13 @@ const Index = () => {
             clearInterval(timerRef.current);
             dispatch(stopTimer());
             dispatch(handleCallClicked(null));
+            dispatch(handleCallTransferClicked(null));
+            setMicMute(false);
+            setCallHold(false);
+            outgoingRingSound.stop();
+            dialRingTone.stop();
+            setIsChannel(false);
+            setIsTalking(false);
           });
         }
         setSession(incomingSession);
@@ -365,7 +440,11 @@ const Index = () => {
           video: false,
         },
         rtcOfferConstraints: {
-          offerToReceiveAudio: 1,
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: false,
+        },
+        pcConfig: {
+          iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
         },
       });
       setSession(callSession);
@@ -373,16 +452,91 @@ const Index = () => {
   }, [callData]);
 
   useEffect(() => {
-    dispatch(getContacts(userData?.user?.name));
-  }, []);
+    if (isActive && blindNumber) {
+      if (!session) return;
+      const sendDtmf = async () => {
+        try {
+          session.sendDTMF(blindNumber, {
+            duration: 100,
+            interToneGap: 200,
+          });
 
-  const [isOpenDialModal, setIsOpenDialModal] = useState<boolean>(false);
+          const onFailed = (error: any) => {
+            if (error.cause === "Not Found" || error.status_code === 404) {
+              setSession(session);
+              dispatch(handleCallTransferClicked(null));
+            }
+          };
 
-  const onOpenDialPad = () => {
-    setIsOpenDialModal(true);
+          const onAccepted = () => { };
+
+          session.on("failed", onFailed);
+          session.on("accepted", onAccepted);
+
+          return () => {
+            session.off("failed", onFailed);
+            session.off("accepted", onAccepted);
+          };
+        } catch (error) {
+          dispatch(handleCallTransferClicked(null));
+        }
+      };
+
+      sendDtmf();
+    }
+  }, [blindNumber]);
+
+  const toggleMicrophone = () => {
+    callingSessionRef?.current?.connection
+      .getLocalStreams()[0]
+      .getAudioTracks()
+      .forEach((track: any) => {
+        track.enabled = !track.enabled;
+        setMicMute(!track.enabled);
+      });
   };
-  const onCloseDialPad = () => {
-    setIsOpenDialModal(false);
+
+  const toggleCallHold = () => {
+    if (!callHold) {
+      session.hold();
+      setCallHold(true);
+    } else {
+      session.unhold();
+      setCallHold(false);
+    }
+  };
+
+  const handleChangeDTMF = (number: any) => {
+    if (isActive && number) {
+      if (!session) return;
+      const sendDtmf = async () => {
+        try {
+          session.sendDTMF(number, {
+            duration: 160
+          });
+
+          const onFailed = (error: any) => {
+            if (error.cause === "Not Found" || error.status_code === 404) {
+              setSession(session);
+            }
+          };
+
+          const onAccepted = () => { };
+
+          session.on("failed", onFailed);
+          session.on("accepted", onAccepted);
+
+          return () => {
+            session.off("failed", onFailed);
+            session.off("accepted", onAccepted);
+          };
+        } catch (error) {
+        }
+      };
+      sendDtmf();
+    }
+
+
   };
 
   return (
@@ -397,30 +551,17 @@ const Index = () => {
         <div className="user-chat-overlay" id="user-chat-overlay"></div>
 
         {selectedChat !== null ? (
-          // <div className="chat-content d-lg-flex">
-          //   <div className="w-100 overflow-hidden position-relative">
-          //     <ConversationUser />
-          //   </div>
-          //   <UserProfileDetails isChannel={true} />
-          // </div>
-
           <div className="chat-content d-lg-flex">
             <div className="w-100 overflow-hidden position-relative">
               <CallHistoryUser />
             </div>
-            <UserProfileDetails isChannel={true} />
           </div>
         ) : (
           <Welcome />
         )}
       </div>
 
-      <FabButtonWithFade onChangeClick={onOpenDialPad} />
-
-      <DialPadModal
-        isOpen={isOpenDialModal}
-        onClose={onCloseDialPad}
-      />
+      <DialPadModal isOpen={isOpenDialModal} onClose={onCloseDialPad} />
 
       <AudioCallModal
         isOpen={getCallsLoading}
@@ -429,6 +570,15 @@ const Index = () => {
         session={session}
         setSession={setSession}
         incomingSession={callingSessionRef.current}
+        userAgentSession={userAgentSession}
+        toggleMicrophone={toggleMicrophone}
+        micMute={micMute}
+        callHold={callHold}
+        toggleCallHold={toggleCallHold}
+        isChannel={isChannel}
+        isTalking={isTalking}
+        setIsTalking={setIsTalking}
+        onChangeDtmf={handleChangeDTMF}
       />
     </>
   );

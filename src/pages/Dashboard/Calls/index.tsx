@@ -2,11 +2,10 @@ import React, { useEffect, useState } from "react";
 
 // hooks
 import { useRedux } from "../../../hooks/index";
-import { createSelector } from "reselect";
+
 // components
 import Loader from "../../../components/Loader";
 import AppSimpleBar from "../../../components/AppSimpleBar";
-import LeftbarTitle from "../../../components/LeftbarTitle";
 import { Button, UncontrolledTooltip } from "reactstrap";
 import Call from "./Call";
 import { MdDialpad } from "react-icons/md";
@@ -16,29 +15,16 @@ import { getCalls } from "../../../redux/actions";
 
 // interface
 import { CallItem } from "../../../data/calls";
-import AudioCallModal from "../../../components/AudioCallModal";
 import DialPadModal from "../../../components/DialPadModal";
 
-interface IndexProps {}
-const Index = (props: IndexProps) => {
-  // global store
+const Index = () => {
+
   const { dispatch, useAppSelector } = useRedux();
 
   const { calls, getCallsLoading } = useAppSelector((state: any) => ({
-    // calls: state.Calls.calls,
     getCallsLoading: state.Calls.getCallsLoading,
     calls: state.CallHistory.call_list,
   }));
-
-  // const errorData = createSelector(
-  //   (state: any) => state.Calls,
-  //   state => ({
-  //     calls: state.calls,
-  //     getCallsLoading: state.getCallsLoading,
-  //   }),
-  // );
-  // Inside your component
-  // const { calls,getCallsLoading} = useAppSelector(errorData);
 
   // get user calls
   useEffect(() => {
@@ -51,6 +37,7 @@ const Index = (props: IndexProps) => {
   const onOpenAudio = () => {
     setIsOpenAudioModal(true);
   };
+  
   const onCloseAudio = () => {
     setIsOpenAudioModal(false);
   };

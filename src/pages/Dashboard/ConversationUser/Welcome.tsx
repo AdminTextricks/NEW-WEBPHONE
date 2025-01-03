@@ -1,10 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button, Col, Row } from "reactstrap";
+import DialPadModal from "../../../components/DialPadModal";
+import { changeTab } from "../../../redux/actions";
+import { useRedux } from "../../../hooks";
 
 const Welcome = () => {
+  const { dispatch } = useRedux();
 
+  const [isOpenAudioModal, setIsOpenAudioModal] = useState<boolean>(false);
+
+  const onOpenAudio = () => {
+    dispatch(changeTab('pills-calls'));
+    setIsOpenAudioModal(true);
+  };
+
+  const onCloseAudio = () => {
+    setIsOpenAudioModal(false);
+  };
   return (
     <React.Fragment>
+      <DialPadModal isOpen={isOpenAudioModal} onClose={onCloseAudio} />
+
       <div className="chat-welcome-section">
         <Row className="w-100 justify-content-center">
           <Col xxl={5} md={7}>
@@ -23,6 +39,7 @@ const Welcome = () => {
               <Button
                 type="button"
                 className="btn btn-primary w-lg"
+                onClick={onOpenAudio}
               >
                 Get Started
               </Button>

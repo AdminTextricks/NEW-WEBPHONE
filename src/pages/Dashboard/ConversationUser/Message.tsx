@@ -336,9 +336,6 @@ const Message = ({
   const isReceived = message.meta.received;
   const isRead = message.meta.read;
   const isForwarded = message.meta.isForwarded;
-  const channdelSenderFullname = message.meta.userData
-    ? `${message.meta.userData.agent_name}`
-    : "-";
   const fullName = chatUserFullName;
   const onDeleteMessage = () => {
     onDelete(message.mId);

@@ -5,7 +5,7 @@ export interface MenuItemType {
   id: number;
   key: string;
   icon: string;
-  tooltipTitle: string;
+  tooltipTitle?: string;
   className?: string;
   tabId: TABS.CALLS | TABS.CHAT | TABS.CONTACTS | TABS.USERS;
 }
@@ -15,7 +15,7 @@ const MENU_ITEMS: MenuItemType[] = [
     key: "pills-user-tab",
     icon: "bx bx-user-circle",
     tooltipTitle: "Profile",
-    className: "d-none d-lg-block",
+    // className: "d-none d-lg-block",
     tabId: TABS.USERS,
   },
   // {
@@ -28,7 +28,7 @@ const MENU_ITEMS: MenuItemType[] = [
   {
     id: 3,
     key: "pills-contacts-tab",
-    icon: "bx bxs-user-detail",
+    icon: "bx bxs-contact",
     tooltipTitle: "Contacts",
     tabId: TABS.CONTACTS,
   },

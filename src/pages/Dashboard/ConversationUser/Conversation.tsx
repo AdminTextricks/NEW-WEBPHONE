@@ -1,23 +1,18 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 
-// hooks
 import { useRedux } from "../../../hooks/index";
 
-// hooks
-import { useProfile } from "../../../hooks";
 import { createSelector } from "reselect";
 // components
 import AppSimpleBar from "../../../components/AppSimpleBar";
 import Loader from "../../../components/Loader";
 import Message from "./Message";
-// import Day from "./Day";
 
-// interface
 import { MessagesTypes } from "../../../data/messages";
-import ForwardModal from "../../../components/ForwardModal";
 
 // actions
 import { forwardMessage, deleteImage } from "../../../redux/actions";
+
 interface ConversationProps {
   chatUserConversations: any;
   chatUserDetails: any;
@@ -30,7 +25,7 @@ const Conversation = ({
   onDelete,
   onSetReplyData
 }: ConversationProps) => {
-  // global store
+
   const { dispatch, useAppSelector } = useRedux();
 
   const errorData = createSelector(
@@ -140,15 +135,6 @@ const Conversation = ({
           );
         })}
       </ul>
-      {isOpenForward && (
-        <ForwardModal
-          isOpen={isOpenForward}
-          onClose={onCloseForward}
-          forwardData={forwardData}
-          chatUserDetails={chatUserDetails}
-          onForward={onForwardMessage}
-        />
-      )}
     </AppSimpleBar>
   );
 };

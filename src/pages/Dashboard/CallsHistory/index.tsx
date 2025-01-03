@@ -33,7 +33,7 @@ const Index = () => {
   return (
     <>
       <UserHead callUserDetails={userDetails} />
-      <History callUserHistory={userCalls} callUserDetails={userDetails} />
+      <History callUserHistory={userCalls} />
     </>
   );
 };
