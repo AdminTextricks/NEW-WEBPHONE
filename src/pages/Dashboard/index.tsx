@@ -34,15 +34,29 @@ const Index = () => {
   const dispatch = useDispatch();
 
   const config = {
-    domain: "opensips.callanalog.com",
-    uri: `sip:${userData?.user?.name}@opensips.callanalog.com`,
+    domain: "user.callanalog.com",
+    uri: `sip:${userData?.user?.name}@user.callanalog.com`,
     password: `${userData?.user?.secret}`,
-    ws_servers: `wss://opensips.callanalog.com:5063/ws`,
-    sockets: new WebSocketInterface(`wss://opensips.callanalog.com:5063/ws`),
+    ws_servers: `wss://user.callanalog.com:5063/ws`,
+    sockets: new WebSocketInterface(`wss://user.callanalog.com:5063/ws`),
     display_name: `${userData?.user?.agent_name}`,
     session_timers: false,
     register: true,
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    configuration: {
+      constraints: {
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+      },
+      codecs: [
+        { name: 'OPUS', preferred: true, payloadType: 111 },
+        { name: 'PCMU', preferred: false, payloadType: 0 },
+        { name: 'PCMA', preferred: false, payloadType: 8 }
+      ]
+    }
   };
 
   const userAgent = new JsSIP.UA(config);
@@ -140,12 +154,12 @@ const Index = () => {
       setIsActive(false);
 
       dispatch({ type: "SET_ACTIVE_STATUS", payload: false });
-      try {
-        const response = await axios.get(
-          `https://pbxbackend.callanalog.com/public/api/UnregisterSip/${userData?.user?.name}`,
-        );
-        return response.data;
-      } catch (error: any) { }
+      // try {
+      //   const response = await axios.get(
+      //     `https://pbxbackend.callanalog.com/public/api/UnregisterSip/${userData?.user?.name}`,
+      //   );
+      //   return response.data;
+      // } catch (error: any) { }
     });
 
     const intervalId = setInterval(() => {
