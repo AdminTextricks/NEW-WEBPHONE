@@ -1,4 +1,3 @@
-// reducer.ts
 import {
   Call,
   CallsHistoryActionTypes,
@@ -25,22 +24,57 @@ interface SessionCallState {
   blindNumber: any;
 }
 
-const initialState: SessionCallState = {
-  call_list: [],
-  getCallsLoading: false,
-  current_callers: [],
-  queue_callers: [],
-  elapsedTime: 0,
-  callData: {},
-  isCallWaiting: false,
-  dtmfSequence: null,
-  blindNumber: null,
+// Load initial state from sessionStorage if available
+const loadState = (): SessionCallState => {
+  try {
+    const serializedState = sessionStorage.getItem('sessionCallState');
+    if (serializedState === null) {
+      return {
+        call_list: [],
+        getCallsLoading: false,
+        current_callers: [],
+        queue_callers: [],
+        elapsedTime: 0,
+        callData: {},
+        isCallWaiting: false,
+        dtmfSequence: null,
+        blindNumber: null,
+      };
+    }
+    return JSON.parse(serializedState);
+  } catch (err) {
+    console.error('Error loading state from sessionStorage:', err);
+    return {
+      call_list: [],
+      getCallsLoading: false,
+      current_callers: [],
+      queue_callers: [],
+      elapsedTime: 0,
+      callData: {},
+      isCallWaiting: false,
+      dtmfSequence: null,
+      blindNumber: null,
+    };
+  }
 };
 
+// Save state to sessionStorage
+const saveState = (state: SessionCallState) => {
+  try {
+    const serializedState = JSON.stringify(state);
+    sessionStorage.setItem('sessionCallState', serializedState);
+  } catch (err) {
+    console.error('Error saving state to sessionStorage:', err);
+  }
+};
+
+const initialState: SessionCallState = loadState();
+
 export const SessionCallReducer = (state = initialState, action: any) => {
+  let newState;
   switch (action.type) {
     case CallsHistoryActionTypes.GET_CALLS_HISTORY:
-      return {
+      newState = {
         ...state,
         call_list: state.call_list.some(
           call => call.id === action.payload[0].id,
@@ -50,48 +84,41 @@ export const SessionCallReducer = (state = initialState, action: any) => {
                 ? { ...call, ...action.payload[0] }
                 : call,
             )
-          : [action.payload[0], ...state.call_list], // Add new entry if ID not found
+          : [action.payload[0], ...state.call_list],
       };
+      break;
     case IsCallingActionTypes.IS_CALLING:
-      return { ...state, getCallsLoading: action.payload };
+      newState = { ...state, getCallsLoading: action.payload };
+      break;
     case IsCallBtnActionTypes.IS_WAITING:
-      return { ...state, isCallWaiting: action.payload };
+      newState = { ...state, isCallWaiting: action.payload };
+      break;
     case START_TIMER:
-      return {
-        ...state,
-        elapsedTime: 0,
-      };
+      newState = { ...state, elapsedTime: 0 };
+      break;
     case STOP_TIMER:
-      return {
-        ...state,
-        elapsedTime: 0,
-      };
+      newState = { ...state, elapsedTime: 0 };
+      break;
     case UPDATE_TIMER:
-      return {
-        ...state,
-        elapsedTime: action.payload,
-      };
+      newState = { ...state, elapsedTime: action.payload };
+      break;
     case HANDLE_CALL_CLICKED:
-      return {
-        ...state,
-        callData: action.payload,
-      };
+      newState = { ...state, callData: action.payload };
+      break;
     case HANDLE_CHANGE_DTMF_NUMBER:
-      return {
-        ...state,
-        dtmfSequence: action.payload,
-      };
+      newState = { ...state, dtmfSequence: action.payload };
+      break;
     case HANDLE_CALL_CONFERENCE_CLICKED:
-      return {
-        ...state,
-        dtmfSequence: action.payload,
-      };
+      newState = { ...state, dtmfSequence: action.payload };
+      break;
     case HANDLE_CALL_TRANSFER_CLICKED:
-      return {
-        ...state,
-        blindNumber: action.payload,
-      };
+      newState = { ...state, blindNumber: action.payload };
+      break;
     default:
       return state;
   }
+  
+  // Save the new state to sessionStorage
+  saveState(newState);
+  return newState;
 };

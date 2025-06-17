@@ -17,7 +17,6 @@ export default combineReducers({
   Contacts,
   Calls,
   Chats,
-
   SIPReducer,
   CallHistory,
 });

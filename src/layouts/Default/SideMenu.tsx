@@ -22,7 +22,8 @@ import { changeTab } from "../../redux/actions";
 // costants
 import { TABS } from "../../constants/index";
 import LightDarkMode from "../../components/LightDarkMode";
-
+import LightLogo from "../../assets/images/LightLogo.png";
+import DarkLogo from "../../assets/images/DarkLogo.png";
 //images
 import avatar1 from "../../assets/images/users/avatar-1.jpg";
 import classnames from "classnames";
@@ -33,46 +34,39 @@ import { useSelector } from "react-redux";
 import { FaCircleUser } from "react-icons/fa6";
 import axios from "axios";
 
-const LogoLightSVG = () => {
+const LogoDarkPNG = () => {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="30"
-      height="30"
-      viewBox="0 0 24 24"
-    >
-      <path d="M8.5,18l3.5,4l3.5-4H19c1.103,0,2-0.897,2-2V4c0-1.103-0.897-2-2-2H5C3.897,2,3,2.897,3,4v12c0,1.103,0.897,2,2,2H8.5z M7,7h10v2H7V7z M7,11h7v2H7V11z" />
-    </svg>
+    <img
+      src={DarkLogo}
+      alt="Call Analog"
+      className="img-thumbnail"
+
+    />
   );
 };
 
-const LogoDarkSVG = () => {
+const LogoLightPNG = () => {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="30"
-      height="30"
-      viewBox="0 0 24 24"
-    >
-      <path d="M8.5,18l3.5,4l3.5-4H19c1.103,0,2-0.897,2-2V4c0-1.103-0.897-2-2-2H5C3.897,2,3,2.897,3,4v12c0,1.103,0.897,2,2,2H8.5z M7,7h10v2H7V7z M7,11h7v2H7V11z" />
-    </svg>
+    <img
+      src={LightLogo}
+      alt="Call Analog"
+      className="img-thumbnail"
+    />
   );
 };
 
-const Logo = () => {
+const SidebarLogo = () => {
   return (
-    <div className="navbar-brand-box">
+    <div className="navbar-brand-box" >
       <Link to="#" className="logo logo-dark">
-        <span className="logo-sm">
-          Logo
-          {/* <LogoLightSVG /> */}
+        <span className="logo-md">
+          <LogoLightPNG />
         </span>
       </Link>
 
       <Link to="#" className="logo logo-light">
         <span className="logo-sm">
-          Logo
-          {/* <LogoDarkSVG /> */}
+          <LogoDarkPNG />
         </span>
       </Link>
     </div>
@@ -86,8 +80,9 @@ interface MenuNavItemProps {
     id: TABS.CALLS | TABS.CHAT | TABS.CONTACTS | TABS.USERS,
   ) => void;
 }
+
 const MenuNavItem = ({ item, selectedTab, onChangeTab }: MenuNavItemProps) => {
-  
+
   const onClick = () => {
     onChangeTab(item.tabId);
   };
@@ -144,7 +139,6 @@ const ProfileDropdownMenu = ({
     }
   };
 
-
   return (
     <Dropdown
       nav
@@ -195,7 +189,6 @@ const ProfileDropdownMenu = ({
           className="d-flex cursor-pointer align-items-center justify-content-between"
           tag="a"
           onClick={handleClickLogout}
-        // href="/logout"
         >
           Log out <i className="bx bx-log-out-circle text-muted ms-1"></i>
         </DropdownItem>
@@ -240,8 +233,7 @@ const SideMenu = ({ onChangeLayoutMode }: any) => {
 
   return (
     <div className="side-menu flex-lg-column">
-      {/* LOGO */}
-      <Logo />
+      <SidebarLogo />
       <div className="flex-lg-column my-0 sidemenu-navigation">
         <Nav pills className="side-menu-nav" role="tablist">
           {(menuItems || []).map((item: MenuItemType, key: number) => (
@@ -252,11 +244,6 @@ const SideMenu = ({ onChangeLayoutMode }: any) => {
               onChangeTab={onChangeTab}
             />
           ))}
-
-          {/* <LightDarkMode
-            layoutMode={layoutMode}
-            onChangeLayoutMode={onChangeLayoutMode}
-          /> */}
 
           <ProfileDropdownMenu
             layoutMode={layoutMode}
