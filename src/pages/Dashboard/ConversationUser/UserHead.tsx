@@ -1,0 +1,263 @@
+import React, { useState } from "react";
+import {
+  Row,
+  Col,
+  Dropdown,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem,
+  Button
+} from "reactstrap";
+import { Link } from "react-router-dom";
+import classnames from "classnames";
+
+// hooks
+import { useRedux } from "../../../hooks/index";
+
+// components
+import AudioCallModal from "../../../components/AudioCallModal";
+
+// actions
+import { changeSelectedChat } from "../../../redux/actions";
+
+interface ProfileImageProps {
+  chatUserDetails: any;
+  onCloseConversation: () => any;
+  onOpenUserDetails: () => any;
+}
+const ProfileImage = ({
+  chatUserDetails,
+  onCloseConversation,
+  onOpenUserDetails
+}: ProfileImageProps) => {
+  const fullName = `--`;
+
+  const colors = [
+    "bg-primary",
+    "bg-danger",
+    "bg-info",
+    "bg-warning",
+    "bg-secondary",
+    "bg-pink",
+    "bg-purple",
+  ];
+  const [color] = useState(Math.floor(Math.random() * colors.length));
+
+  const isOnline = true;
+
+  return (
+    <div className="d-flex align-items-center">
+      <div className="flex-shrink-0 d-block d-lg-none me-2">
+        <Link
+          to="#"
+          onClick={onCloseConversation}
+          className="user-chat-remove text-muted font-size-24 p-2"
+        >
+          <i className="bx bx-chevron-left align-middle"></i>
+        </Link>
+      </div>
+      <div className="flex-grow-1 overflow-hidden">
+        <div className="d-flex align-items-center">
+          <div
+            className={classnames(
+              "flex-shrink-0",
+              "chat-user-img",
+              "align-self-center",
+              "me-3",
+              "ms-0",
+              { online: isOnline },
+            )}
+          >
+            {chatUserDetails?.profileImage ? (
+              <>
+                <img
+                  src={chatUserDetails.profileImage}
+                  className="rounded-circle avatar-sm"
+                  alt=""
+                />
+                <span
+                  className={classnames(
+                    "user-status",
+                    "bg-success"
+                  )}
+                ></span>
+              </>
+            ) : (
+              <div className="avatar-sm align-self-center">
+                <span
+                  className={classnames(
+                    "avatar-title",
+                    "rounded-circle",
+                    "text-uppercase",
+                    "text-white",
+                    colors[color],
+                  )}
+                >
+                  <span className="username">{/* {shortName} */}</span>
+                  <span className="user-status"></span>
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex-grow-1 overflow-hidden">
+            <h6 className="text-truncate mb-0 font-size-18">
+              <Link
+                to="#"
+                onClick={onOpenUserDetails}
+                className="user-profile-show text-reset"
+              >
+                {fullName}
+              </Link>
+            </h6>
+            <p className="text-truncate text-muted mb-0">
+              <small>{chatUserDetails?.status}</small>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface MoreProps {
+  onOpenAudio: () => void;
+  onOpenVideo: () => void;
+  onDelete: () => void;
+  isArchive: boolean;
+  onToggleArchive: () => void;
+}
+const More = ({
+  onOpenAudio,
+  onOpenVideo,
+  onDelete,
+  isArchive,
+  onToggleArchive,
+}: MoreProps) => {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const toggle = () => setDropdownOpen(!dropdownOpen);
+
+  return (
+    <Dropdown isOpen={dropdownOpen} toggle={toggle}>
+      <DropdownToggle color="none" className="btn nav-btn" type="button">
+        <i className="bx bx-dots-vertical-rounded"></i>
+      </DropdownToggle>
+      <DropdownMenu className="dropdown-menu-end">
+        <DropdownItem
+          className="d-flex justify-content-between align-items-center d-lg-none user-profile-show"
+          to="#"
+        >
+          View Profile <i className="bx bx-user text-muted"></i>
+        </DropdownItem>
+        <DropdownItem
+          className="d-flex justify-content-between align-items-center d-lg-none"
+          to="#"
+          onClick={onOpenAudio}
+        >
+          Audio <i className="bx bxs-phone-call text-muted"></i>
+        </DropdownItem>
+        <DropdownItem
+          className="d-flex justify-content-between align-items-center"
+          to="#"
+          onClick={onToggleArchive}
+        >
+          {isArchive ? (
+            <>
+              Un-Archive <i className="bx bx-archive-out text-muted"></i>
+            </>
+          ) : (
+            <>
+              Archive <i className="bx bx-archive text-muted"></i>
+            </>
+          )}
+        </DropdownItem>
+        <DropdownItem
+          className="d-flex justify-content-between align-items-center"
+          to="#"
+        >
+          Muted <i className="bx bx-microphone-off text-muted"></i>
+        </DropdownItem>
+        <DropdownItem
+          className="d-flex justify-content-between align-items-center"
+          to="#"
+          onClick={onDelete}
+        >
+          Delete <i className="bx bx-trash text-muted"></i>
+        </DropdownItem>
+      </DropdownMenu>
+    </Dropdown>
+  );
+};
+
+interface UserHeadProps {
+  chatUserDetails: any;
+  onOpenUserDetails: () => void;
+  onDelete: () => void;
+  onToggleArchive: () => void;
+}
+
+const UserHead = ({
+  chatUserDetails,
+  onOpenUserDetails
+}: UserHeadProps) => {
+  // global store
+  const { dispatch } = useRedux();
+
+  const [isOpenAudioModal, setIsOpenAudioModal] = useState<boolean>(false);
+  const onOpenAudio = () => {
+    setIsOpenAudioModal(true);
+  };
+  const onCloseAudio = () => {
+    setIsOpenAudioModal(false);
+  };
+
+
+  const onCloseConversation = () => {
+    dispatch(changeSelectedChat(null));
+  };
+
+  return (
+    <div className="p-3 p-lg-4 user-chat-topbar">
+      <Row className="align-items-center">
+        <Col sm={4} className="col-8">
+          <ProfileImage
+            chatUserDetails={chatUserDetails}
+            onCloseConversation={onCloseConversation}
+            onOpenUserDetails={onOpenUserDetails}
+          />
+        </Col>
+        <Col sm={8} className="col-4">
+          <ul className="list-inline user-chat-nav text-end mb-0">
+            <li className="list-inline-item d-none d-lg-inline-block me-2 ms-0">
+              <Button
+                type="button"
+                color="none"
+                className="btn nav-btn"
+                onClick={onOpenAudio}
+              >
+                <i className="bx bxs-phone-call"></i>
+              </Button>
+            </li>
+            <li className="list-inline-item d-none d-lg-inline-block me-2 ms-0">
+              <button
+                onClick={onOpenUserDetails}
+                type="button"
+                className="btn nav-btn user-profile-show"
+              >
+                <i className="bx bxs-info-circle"></i>
+              </button>
+            </li>
+          </ul>
+        </Col>
+      </Row>
+      {isOpenAudioModal && (
+        <AudioCallModal
+          isOpen={isOpenAudioModal}
+          onClose={onCloseAudio}
+          user={chatUserDetails}
+        />
+      )}
+    </div>
+  );
+};
+
+export default UserHead;
