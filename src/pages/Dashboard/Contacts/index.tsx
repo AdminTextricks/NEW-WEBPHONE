@@ -11,13 +11,9 @@ import Contact from "./Contact";
 const Index = React.memo(() => {
   const { useAppSelector } = useRedux();
 
-  const { contacts, getContactsLoading, isContactsFetched } = useAppSelector(
-    (state: any) => ({
-      getContactsLoading: state.Contacts.getContactsLoading,
-      contacts: state.Contacts.contacts,
-      isContactsFetched: state.Contacts.isContactsFetched,
-    }),
-  );
+  const getContactsLoading = useAppSelector((state: any) => state.Contacts.getContactsLoading);
+  const contacts = useAppSelector((state: any) => state.Contacts.contacts);
+  const isContactsFetched = useAppSelector((state: any) => state.Contacts.isContactsFetched);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState<Array<any>>([]);
@@ -33,15 +29,15 @@ const Index = React.memo(() => {
       setFilteredData(
         contacts?.length > 0
           ? contacts.filter(
-              (item: any) =>
-                item.agent_name
-                  .toLowerCase()
-                  .includes(searchQuery.toLowerCase()) ||
-                item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.callbackextension
-                  .toLowerCase()
-                  .includes(searchQuery.toLowerCase()),
-            )
+            (item: any) =>
+              item.agent_name
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()) ||
+              item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              item.callbackextension
+                .toLowerCase()
+                .includes(searchQuery.toLowerCase()),
+          )
           : [],
       );
     }

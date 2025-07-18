@@ -10,7 +10,6 @@ import "../../../assets/scss/custom.css";
 import { calculateTimeDifference } from "../../../utils";
 import { useDispatch } from "react-redux";
 import { handleCallClicked } from "../../../redux/sessionCall/actions";
-import { useSelector } from "react-redux";
 
 interface CallProps {
   call: any;
@@ -22,11 +21,6 @@ const Call = ({ call }: CallProps) => {
   const [user, setUser] = useState<null | CallItem>(null);
 
   const [isOpenAudioModal, setIsOpenAudioModal] = useState<boolean>(false);
-
-  const onOpenAudio = () => {
-    setUser(call);
-    setIsOpenAudioModal(true);
-  };
 
   const onCloseAudio = () => {
     setUser(null);

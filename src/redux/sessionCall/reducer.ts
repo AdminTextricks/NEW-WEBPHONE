@@ -43,7 +43,7 @@ const loadState = (): SessionCallState => {
     }
     return JSON.parse(serializedState);
   } catch (err) {
-    console.error('Error loading state from sessionStorage:', err);
+    console.log('Error loading state from sessionStorage:', err);
     return {
       call_list: [],
       getCallsLoading: false,
@@ -64,7 +64,7 @@ const saveState = (state: SessionCallState) => {
     const serializedState = JSON.stringify(state);
     sessionStorage.setItem('sessionCallState', serializedState);
   } catch (err) {
-    console.error('Error saving state to sessionStorage:', err);
+    console.log('Error saving state to sessionStorage:', err);
   }
 };
 
@@ -74,18 +74,21 @@ export const SessionCallReducer = (state = initialState, action: any) => {
   let newState;
   switch (action.type) {
     case CallsHistoryActionTypes.GET_CALLS_HISTORY:
-      newState = {
-        ...state,
-        call_list: state.call_list.some(
-          call => call.id === action.payload[0].id,
+      const updatedCallList = state.call_list.some(call => call.id === action.payload[0].id)
+        ? state.call_list.map(call =>
+          call.id === action.payload[0].id
+            ? { ...call, ...action.payload[0] }
+            : call
         )
-          ? state.call_list.map(call =>
-              call.id === action.payload[0].id
-                ? { ...call, ...action.payload[0] }
-                : call,
-            )
-          : [action.payload[0], ...state.call_list],
+        : [action.payload[0], ...state.call_list];
+
+      const trimmedCallList = updatedCallList.slice(0, 10);
+
+      const get_newState = {
+        ...state,
+        call_list: trimmedCallList,
       };
+      newState = get_newState;
       break;
     case IsCallingActionTypes.IS_CALLING:
       newState = { ...state, getCallsLoading: action.payload };
@@ -97,7 +100,7 @@ export const SessionCallReducer = (state = initialState, action: any) => {
       newState = { ...state, elapsedTime: 0 };
       break;
     case STOP_TIMER:
-      newState = { ...state, elapsedTime: 0 };
+      newState = { ...state, elapsedTime: 0, getCallsLoading: false };
       break;
     case UPDATE_TIMER:
       newState = { ...state, elapsedTime: action.payload };
@@ -115,9 +118,10 @@ export const SessionCallReducer = (state = initialState, action: any) => {
       newState = { ...state, blindNumber: action.payload };
       break;
     default:
-      return state;
+      newState = { ...state, getCallsLoading: false };
+      break;
   }
-  
+
   // Save the new state to sessionStorage
   saveState(newState);
   return newState;

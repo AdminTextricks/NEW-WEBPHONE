@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from "react";
-
+import { useEffect, useState } from "react";
 import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from "reactstrap";
-
 import { CallItem } from "../data/calls";
 import imagePlaceholder from "../assets/images/users/user-dummy-img.jpg";
 import { FiPhone } from "react-icons/fi";
@@ -10,52 +8,89 @@ import { useRedux } from "../hooks";
 import { selectElapsedTime } from "../redux/sessionCall/itilities";
 import { FaDeleteLeft } from "react-icons/fa6";
 
+// Extend HTMLAudioElement to include setSinkId and srcObject
+declare global {
+  interface HTMLAudioElement {
+    setSinkId?: (sinkId: string) => Promise<void>;
+    srcObject?: MediaStream | null;
+  }
+}
+
 interface AudioCallModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: CallItem | null;
   session?: any;
-  setSession?: any;
+  setSession?: (session: any) => void;
   incomingSession?: any;
-  userAgentSession?: any;
-  toggleMicrophone?: any;
-  micMute?: any;
-  toggleCallHold?: any;
-  callHold?: any;
-  isChannel?: any;
-  onChangeDtmf?: any;
-  isTalking?: Boolean;
-  setIsTalking?: any;
+  toggleMicrophone?: () => void;
+  micMute?: boolean;
+  toggleCallHold?: () => void;
+  callHold?: boolean;
+  isChannel?: boolean;
+  onChangeDtmf?: (value: string) => void;
+  isTalking?: boolean;
+  setIsTalking?: (isTalking: boolean) => void;
 }
 
-const handleAudioOutput = async () => {
-  const audioElement: any = document.getElementById("remoteAudio");
+const createAudioContext = () => {
+  try {
+    if (window.AudioContext) {
+      return new (window.AudioContext)();
+    } else {
+      console.warn("Web Audio API is not supported in this browser.");
+      return null;
+    }
+  } catch (error: unknown) {
+    console.error("Failed to create AudioContext:", error);
+    return null;
+  }
+};
 
-  if (typeof audioElement.setSinkId === "function") {
-    try {
-      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const audioOutputDevices = devices.filter(
-        device => device.kind === "audiooutput",
+const handleAudioOutput = async () => {
+  const audioElement = document.getElementById("remoteAudio") as HTMLAudioElement;
+
+  if (!audioElement || typeof audioElement.setSinkId !== "function") {
+    console.warn("Audio output selection is not supported in this browser.");
+    return;
+  }
+
+  try {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioOutputDevices = devices.filter(device => device.kind === "audiooutput");
+
+    if (audioOutputDevices.length === 0) {
+      console.warn("No audio output devices found.");
+      return;
+    }
+
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+    let targetDeviceId: string | undefined;
+
+    if (isMobile) {
+      const speakerDevice = audioOutputDevices.find(device =>
+        device.label.toLowerCase().includes("speaker")
       );
-      if (isMobile) {
-        const speakerDevice = audioOutputDevices.find(device =>
-          device.label.toLowerCase().includes("speaker"),
-        );
-        if (speakerDevice) {
-          await audioElement.setSinkId(speakerDevice.deviceId);
-        } else { }
-      } else {
-        if (audioOutputDevices.length > 0) {
-          await audioElement.setSinkId(audioOutputDevices[0].deviceId);
-        }
-      }
-    } catch (error) { }
-  } else { }
+      targetDeviceId = speakerDevice?.deviceId;
+    } else {
+      targetDeviceId = audioOutputDevices[0]?.deviceId;
+    }
+
+    if (targetDeviceId) {
+      await audioElement.setSinkId(targetDeviceId);
+      console.log(`Set audio output to device: ${targetDeviceId}`);
+    } else {
+      console.warn("No suitable audio output device found.");
+    }
+  } catch (error: unknown) {
+    console.error("Error setting audio output:", error);
+  }
 };
 
 const AudioCallModal = ({
   isOpen,
+  onClose,
   user,
   session,
   setSession,
@@ -69,28 +104,32 @@ const AudioCallModal = ({
   isTalking,
   setIsTalking,
 }: AudioCallModalProps) => {
-
   const { useAppSelector } = useRedux();
-
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const elapsedTime = useAppSelector(selectElapsedTime);
-  const audioContext = new (window.AudioContext || window.BaseAudioContext)();
-
-  const { callData } = useAppSelector((state: any) => ({
-    callData: state.CallHistory.callData,
-  }));
-
+  const callData = useAppSelector((state: any) => state.CallHistory.callData);
   const [clearTimeoutId, setClearTimeoutId] = useState<any>(null);
   const [incomingCalling, setIncomingCalling] = useState(true);
-
   const [dialPadModal, setDialPadModal] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [typingTimeout, setTypingTimeout] = useState<any>(null);
-
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
   const [transferSubmitModal, setDialSubmitModal] = useState(false);
   const [input, setInput] = useState("");
-  const [btnType, setBtnType] = useState('transfer');
-
+  const [btnType, setBtnType] = useState<'transfer' | 'conference'>('transfer');
   const [dtmfKey, setDtmfKey] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      const context = createAudioContext();
+      setAudioContext(context);
+    }
+
+    return () => {
+      if (audioContext) {
+        audioContext.close().catch((err: unknown) => console.error("Error closing AudioContext:", err));
+      }
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -99,22 +138,46 @@ const AudioCallModal = ({
       setDialSubmitModal(false);
       setDtmfKey('');
     }
-
   }, [isOpen]);
 
-  const handleClickConferenceBtn = (e: any) => {
-    setBtnType('conference')
+  useEffect(() => {
+    if (isOpen && audioContext && incomingSession && !callHold) {
+      const startListening = (e: RTCTrackEvent) => {
+        if (e.track.kind === "audio") {
+          const remoteAudio = document.getElementById("remoteAudio") as HTMLAudioElement;
+          if (remoteAudio) {
+            audioContext.resume().then(() => {
+              remoteAudio.srcObject = e.streams[0];
+              (remoteAudio as HTMLMediaElement).play().catch((err: unknown) =>
+                console.error("Error playing remote audio:", err)
+              );
+            }).catch((err: unknown) => console.error("Error resuming AudioContext:", err));
+          }
+        }
+      };
+
+      setIncomingCalling(true);
+      incomingSession.connection?.addEventListener("track", startListening);
+
+      return () => {
+        incomingSession.connection?.removeEventListener("track", startListening);
+      };
+    }
+  }, [isOpen, incomingSession, callHold, audioContext]);
+
+  const handleClickConferenceBtn = (e: React.MouseEvent) => {
+    setBtnType('conference');
     e.preventDefault();
     setDialSubmitModal(true);
     setDtmfKey('*3');
-  }
+  };
 
-  const handleClickBlindTransferBtn = (e: any) => {
-    setBtnType('transfer')
+  const handleClickBlindTransferBtn = (e: React.MouseEvent) => {
+    setBtnType('transfer');
     e.preventDefault();
     setDialSubmitModal(true);
     setDtmfKey('##');
-  }
+  };
 
   // ~~~~~~~~~~~~~~~~~Dial Pad Modal~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -122,33 +185,33 @@ const AudioCallModal = ({
     setDialPadModal(!dialPadModal);
   };
 
-  const handleButtonClick = (value: any) => {
+  const handleButtonClick = (value: string) => {
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
     const lastDigit = value.slice(-1);
-    onChangeDtmf(lastDigit);
+    onChangeDtmf?.(lastDigit);
     setTypingTimeout(
       setTimeout(() => {
         if (value.length > 1) {
-          onChangeDtmf(value);
+          onChangeDtmf?.(value);
         }
       }, 3000)
     );
     setInputValue(prevInput => prevInput + value);
   };
 
-  const handleInputValueChange = (event: any) => {
-    const value: string = event.target.value;
+  const handleInputValueChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
     if (typingTimeout) {
       clearTimeout(typingTimeout);
     }
     const lastDigit = value.slice(-1);
-    onChangeDtmf(lastDigit);
+    onChangeDtmf?.(lastDigit);
     setTypingTimeout(
       setTimeout(() => {
         if (value.length > 1) {
-          onChangeDtmf(value);
+          onChangeDtmf?.(value);
         }
       }, 3000)
     );
@@ -165,7 +228,7 @@ const AudioCallModal = ({
 
   const handleOpenDialpadModal = () => {
     setDialPadModal(true);
-  }
+  };
 
   // ~~~~~~~~~~~~~~~~~Transfer DialPad Modal~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -173,11 +236,11 @@ const AudioCallModal = ({
     setDialSubmitModal(!transferSubmitModal);
   };
 
-  const handlePressDigit = (value: any) => {
+  const handlePressDigit = (value: string) => {
     setInput(prevInput => prevInput + value);
   };
 
-  const handleDigitsChange = (event: any) => {
+  const handleDigitsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setInput(event.target.value);
   };
 
@@ -193,82 +256,50 @@ const AudioCallModal = ({
     handlePressDigit("0");
   };
 
-  const handleSubmitDialModal = (e: { preventDefault: () => void }) => {
+  const handleSubmitDialModal = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input) return;
-    onChangeDtmf(dtmfKey + input + '#');
+    onChangeDtmf?.(dtmfKey + input + '#');
     setDialSubmitModal(false);
     setInput('');
-  }
+  };
 
   // ~~~~~~~~~~~~~~~~~ Hangup ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
   const handleHangup = () => {
     if (session) {
       session.terminate();
-      setSession(null);
+      setSession?.(null);
       setIncomingCalling(false);
-      setIsTalking(false);
+      setIsTalking?.(false);
+      onClose();
     }
   };
 
   // ~~~~~~~~~~~~~~~~~ Call Accept ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   const handleAccept = () => {
-    if (session) {
+    if (session && audioContext) {
       setIncomingCalling(false);
       session.answer();
-      setIsTalking(true);
+      setIsTalking?.(true);
+      audioContext.resume().catch((err: unknown) => console.error("Error resuming AudioContext:", err));
     }
   };
 
-  // ~~~~~~~~~~~~~~~~~ Audio Listen ~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-  useEffect(() => {
-    const startListening = () => {
-      if (!incomingSession) {
-        return;
-      }
-      incomingSession?.connection?.addEventListener("track", (e: any) => {
-        if (e.track.kind === "audio") {
-          audioContext.resume().then(() => {
-            const remoteAudio: any = document.getElementById("remoteAudio");
-            remoteAudio.play().catch((error: any) => { });
-          });
-        }
-      });
-    };
-
-    if (incomingSession && !callHold) {
-      setIncomingCalling(true);
-      startListening();
-    }
-
-    return () => {
-      if (incomingSession) {
-        incomingSession?.connection?.removeEventListener(
-          "track",
-          startListening,
-        );
-      }
-    };
-  }, [incomingSession, callHold]);
-
   // ~~~~~~~~~~~~~~~~~ Call Mute ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  const handleClickMuteBtn = (e: any) => {
+  const handleClickMuteBtn = (e: React.MouseEvent) => {
     e.preventDefault();
-    toggleMicrophone();
-  }
+    toggleMicrophone?.();
+  };
 
   // ~~~~~~~~~~~~~~~~~ Call Hold ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  const handleClickHoldBtn = (e: any) => {
+  const handleClickHoldBtn = (e: React.MouseEvent) => {
     e.preventDefault();
-    toggleCallHold();
-  }
-
+    toggleCallHold?.();
+  };
 
   return (
     <Modal
@@ -288,25 +319,23 @@ const AudioCallModal = ({
             />
           </div>
 
-          <h4
-            className={`${!incomingCalling ? "none" : "block blinking-icon"}`}
-          >
+          <h4 className={`${!incomingCalling ? "none" : "block blinking-icon"}`}>
             {user?.direction === "incoming" ? "Calling from" : "Calling to"}
           </h4>
           <div className="mt-4 text-center">
             {user?.direction === "incoming" ? (
               <>
                 <h5 className="font-size-18 mb-0 text-truncate">
-                  {user ? `${user.number}` : ""}
+                  {user ? (user?.number || "Anonymous") : ""}
                 </h5>
                 <h6 className="font-size-15 mb-0 text-truncate">
-                  {user ? `${user.name}` : ""}
+                  {user ? (user.number === user.name ? "Anonymous" : user.name || "Anonymous") : ""}
                 </h6>
               </>
             ) : (
               <>
                 <h5 className="font-size-18 mb-0 text-truncate">
-                  {callData ? `${callData.number}` : ""}
+                  {callData ? `${callData?.number}` : ""}
                 </h5>
                 <h6 className="font-size-15 mb-0 text-truncate">
                   {callData ? `${callData.name}` : ""}
@@ -315,7 +344,7 @@ const AudioCallModal = ({
             )}
           </div>
 
-          <span className={`${elapsedTime !== 0 ? "hidden" : "block"}`}>
+          <span className={`${elapsedTime === 0 ? "hidden" : "block"}`}>
             {elapsedTime !== 0 && formatTimer(elapsedTime)}
           </span>
 
@@ -329,7 +358,7 @@ const AudioCallModal = ({
                 disabled={!isTalking}
               >
                 <span className={`avatar-title bg-transparent ${!micMute && 'text-muted'} font-size-20`}>
-                  <i className="mdi mdi-microphone-off" ></i>
+                  <i className="mdi mdi-microphone-off"></i>
                 </span>
               </Button>
               <h5 className="font-size-11 text-uppercase text-Mute mt-2">
@@ -356,7 +385,7 @@ const AudioCallModal = ({
               <Button
                 type="button"
                 color="light"
-                className=" avatar-sm rounded-circle"
+                className="avatar-sm rounded-circle"
                 onClick={handleAudioOutput}
               >
                 <span className="avatar-title bg-transparent text-muted font-size-20">
@@ -467,17 +496,14 @@ const AudioCallModal = ({
           <div className="mt-4 text-center"></div>
         </div>
 
-
         <Modal
           isOpen={dialPadModal}
           toggle={toggleDialPadModalNested}
           centered
-          size='sm'
+          size="sm"
         >
           <ModalBody>
-            <div
-              className="container text-center p-2"
-            >
+            <div className="container text-center p-2">
               <div className="input-group">
                 <input
                   type="text"
@@ -583,13 +609,11 @@ const AudioCallModal = ({
           isOpen={transferSubmitModal}
           toggle={toggleTransferModal}
           centered
-          size='sm'
+          size="sm"
         >
           <ModalHeader>{btnType === 'transfer' ? 'Transfer Call' : 'Conference Call'}</ModalHeader>
           <ModalBody>
-            <div
-              className="container text-center"
-            >
+            <div className="container text-center">
               <div className="input-group">
                 <input
                   type="text"
@@ -699,11 +723,9 @@ const AudioCallModal = ({
             </Button>
           </ModalFooter>
         </Modal>
-
-
       </ModalBody>
       <audio id="remoteAudio" autoPlay></audio>
-    </Modal >
+    </Modal>
   );
 };
 

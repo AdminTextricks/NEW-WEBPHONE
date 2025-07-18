@@ -6,9 +6,7 @@ import {
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
-  Button,
-  Alert,
-  UncontrolledTooltip,
+  Button
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import classnames from "classnames";
@@ -190,41 +188,6 @@ const More = ({
   );
 };
 
-interface PinnedAlertProps {
-  onOpenPinnedTab: () => void;
-}
-const PinnedAlert = ({ onOpenPinnedTab }: PinnedAlertProps) => {
-  const [visible, setVisible] = useState(true);
-
-  const onDismiss = () => setVisible(false);
-
-  return (
-    <Alert
-      color="warning"
-      isOpen={visible}
-      toggle={onDismiss}
-      className="topbar-bookmark p-1 px-3 px-lg-4 pe-lg-5 pe-5 alert-dismiss-custom"
-      role="alert"
-    >
-      <div className="d-flex align-items-start bookmark-tabs">
-        <div className="tab-list-link">
-          <Link to="#" className="tab-links" onClick={onOpenPinnedTab}>
-            <i className="ri-pushpin-fill align-middle me-1"></i> 10 Pinned
-          </Link>
-        </div>
-        <div id="add-bookmark">
-          <Link to="#" className="tab-links border-0 px-3">
-            <i className="ri-add-fill align-middle"></i>
-          </Link>
-        </div>
-        <UncontrolledTooltip target="add-bookmark" placement="bottom">
-          Add Bookmark
-        </UncontrolledTooltip>
-      </div>
-    </Alert>
-  );
-};
-
 interface UserHeadProps {
   chatUserDetails: any;
   onOpenUserDetails: () => void;
@@ -234,24 +197,10 @@ interface UserHeadProps {
 
 const UserHead = ({
   chatUserDetails,
-  onOpenUserDetails,
-  onDelete,
-  onToggleArchive,
+  onOpenUserDetails
 }: UserHeadProps) => {
   // global store
   const { dispatch } = useRedux();
-  /*
-    video call modal
-    */
-  const [isOpenVideoModal, setIsOpenVideoModal] = useState<boolean>(false);
-
-  const onOpenVideo = () => {
-    setIsOpenVideoModal(true);
-  };
-
-  const onCloseVideo = () => {
-    setIsOpenVideoModal(false);
-  };
 
   const [isOpenAudioModal, setIsOpenAudioModal] = useState<boolean>(false);
   const onOpenAudio = () => {
@@ -261,14 +210,6 @@ const UserHead = ({
     setIsOpenAudioModal(false);
   };
 
-  const [isOpenPinnedTabModal, setIsOpenPinnedTabModal] =
-    useState<boolean>(false);
-  const onOpenPinnedTab = () => {
-    setIsOpenPinnedTabModal(true);
-  };
-  const onClosePinnedTab = () => {
-    setIsOpenPinnedTabModal(false);
-  };
 
   const onCloseConversation = () => {
     dispatch(changeSelectedChat(null));

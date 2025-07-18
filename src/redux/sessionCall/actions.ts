@@ -19,9 +19,9 @@ export const setCallsHistory = (callHistory: Call) => ({
   payload: Array.isArray(callHistory) ? callHistory : [callHistory],
 });
 
-export const setIsCalling = (getCallsLoading: boolean) => ({
+export const setIsCalling = (loading: boolean) => ({
   type: IsCallingActionTypes.IS_CALLING,
-  payload: getCallsLoading,
+  payload: loading,
 });
 
 export const startTimer = () => ({

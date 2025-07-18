@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import { Link } from "react-router-dom";
 import {
   Nav,
@@ -10,68 +9,49 @@ import {
   DropdownMenu,
   NavLink,
   UncontrolledTooltip,
-  Badge,
 } from "reactstrap";
-import { createSelector } from "reselect";
+import { useSelector } from "react-redux";
+import { FaCircleUser } from "react-icons/fa6";
+import axios from "axios";
+
 // hooks
 import { useRedux } from "../../hooks/index";
 
 // actions
 import { changeTab } from "../../redux/actions";
 
-// costants
+// constants
 import { TABS } from "../../constants/index";
 import LightDarkMode from "../../components/LightDarkMode";
 import LightLogo from "../../assets/images/LightLogo.png";
 import DarkLogo from "../../assets/images/DarkLogo.png";
-//images
-import avatar1 from "../../assets/images/users/avatar-1.jpg";
-import classnames from "classnames";
 
 // menu
 import { MENU_ITEMS, MenuItemType } from "./menu";
-import { useSelector } from "react-redux";
-import { FaCircleUser } from "react-icons/fa6";
-import axios from "axios";
 
-const LogoDarkPNG = () => {
-  return (
-    <img
-      src={DarkLogo}
-      alt="Call Analog"
-      className="img-thumbnail"
+// Logo Components
+const LogoDarkPNG = () => (
+  <img src={DarkLogo} alt="Call Analog" className="img-thumbnail" />
+);
 
-    />
-  );
-};
+const LogoLightPNG = () => (
+  <img src={LightLogo} alt="Call Analog" className="img-thumbnail" />
+);
 
-const LogoLightPNG = () => {
-  return (
-    <img
-      src={LightLogo}
-      alt="Call Analog"
-      className="img-thumbnail"
-    />
-  );
-};
-
-const SidebarLogo = () => {
-  return (
-    <div className="navbar-brand-box" >
-      <Link to="#" className="logo logo-dark">
-        <span className="logo-md">
-          <LogoLightPNG />
-        </span>
-      </Link>
-
-      <Link to="#" className="logo logo-light">
-        <span className="logo-sm">
-          <LogoDarkPNG />
-        </span>
-      </Link>
-    </div>
-  );
-};
+const SidebarLogo = () => (
+  <div className="navbar-brand-box">
+    <Link to="#" className="logo logo-dark">
+      <span className="logo-md">
+        <LogoLightPNG />
+      </span>
+    </Link>
+    <Link to="#" className="logo logo-light">
+      <span className="logo-sm">
+        <LogoDarkPNG />
+      </span>
+    </Link>
+  </div>
+);
 
 interface MenuNavItemProps {
   item: MenuItemType;
@@ -82,10 +62,7 @@ interface MenuNavItemProps {
 }
 
 const MenuNavItem = ({ item, selectedTab, onChangeTab }: MenuNavItemProps) => {
-
-  const onClick = () => {
-    onChangeTab(item.tabId);
-  };
+  const onClick = () => onChangeTab(item.tabId);
   return (
     <>
       <NavItem className={item.className} id={`${item.key}-container`}>
@@ -109,7 +86,7 @@ const MenuNavItem = ({ item, selectedTab, onChangeTab }: MenuNavItemProps) => {
 interface ProfileDropdownMenuProps {
   layoutMode: string;
   onChangeLayoutMode: () => void;
-  isActive: false;
+  isActive: boolean;
   onChangeTab: (
     id: TABS.CALLS | TABS.CHAT | TABS.CONTACTS | TABS.USERS,
   ) => void;
@@ -118,13 +95,10 @@ interface ProfileDropdownMenuProps {
 const ProfileDropdownMenu = ({
   onChangeLayoutMode,
   layoutMode,
-  onChangeTab,
   isActive,
 }: ProfileDropdownMenuProps) => {
   const userData = useSelector((state: any) => state.Login);
-
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
   const toggle = () => setDropdownOpen(!dropdownOpen);
 
   const handleClickLogout = async () => {
@@ -133,8 +107,9 @@ const ProfileDropdownMenu = ({
         `https://pbxbackend.callanalog.com/public/api/UnregisterSip/${userData?.user?.name}`
       );
     } catch (error) {
+      console.log("Logout error:", error);
     } finally {
-      localStorage.removeItem('user');
+      localStorage.removeItem("user");
       window.location.reload();
     }
   };
@@ -158,10 +133,7 @@ const ProfileDropdownMenu = ({
               justifyContent: "center",
             }}
           >
-            <FaCircleUser
-              // className="username"
-              style={{ width: "40px", height: "40px" }}
-            />
+            <FaCircleUser style={{ width: "40px", height: "40px" }} />
           </div>
           <div
             className="blinking-icon"
@@ -173,7 +145,7 @@ const ProfileDropdownMenu = ({
               height: "10px",
               backgroundColor: isActive ? "#00FF54" : "#ef0808",
               borderRadius: "50%",
-              opacity: 1
+              opacity: 1,
             }}
           ></div>
         </div>
@@ -197,24 +169,18 @@ const ProfileDropdownMenu = ({
   );
 };
 
+// ✅ FIX: Stable primitive selectors (instead of object-returning selectors)
+const selectActiveTab = (state: any) => state.Layout.activeTab;
+const selectLayoutMode = (state: any) => state.Layout.layoutMode;
+
 const SideMenu = ({ onChangeLayoutMode }: any) => {
   const { dispatch, useAppSelector } = useRedux();
 
   const menuItems: MenuItemType[] = MENU_ITEMS;
 
-  const { isActive } = useSelector((state: any) => ({
-    isActive: state.SIPReducer.isActive,
-  }));
-
-  const errorData = createSelector(
-    (state: any) => state.Layout,
-    state => ({
-      activeTab: state.activeTab,
-      layoutMode: state.layoutMode,
-    }),
-  );
-
-  const { activeTab, layoutMode } = useAppSelector(errorData);
+  const isActive = useSelector((state: any) => state.SIPReducer.isActive);
+  const activeTab = useAppSelector(selectActiveTab);
+  const layoutMode = useAppSelector(selectLayoutMode);
 
   const [selectedTab, setSelectedTab] = useState<
     TABS.CALLS | TABS.CHAT | TABS.CONTACTS | TABS.USERS
@@ -236,7 +202,7 @@ const SideMenu = ({ onChangeLayoutMode }: any) => {
       <SidebarLogo />
       <div className="flex-lg-column my-0 sidemenu-navigation">
         <Nav pills className="side-menu-nav" role="tablist">
-          {(menuItems || []).map((item: MenuItemType, key: number) => (
+          {menuItems.map((item: MenuItemType, key: number) => (
             <MenuNavItem
               item={item}
               key={key}

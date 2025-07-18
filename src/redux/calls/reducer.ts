@@ -36,7 +36,7 @@ const Calls = (state = INIT_STATE, action: any) => {
     case CallsActionTypes.GET_CALLS: {
       return {
         ...state,
-        getCallsLoading: true,
+        getCallsLoading: false,
         isCallsFetched: false,
       };
     }

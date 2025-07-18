@@ -6,7 +6,6 @@ import { useRedux } from "../../hooks/index";
 import CallHistoryUser from "./CallsHistory/index";
 import Welcome from "./ConversationUser/Welcome";
 import Leftbar from "./Leftbar";
-import axios from "axios";
 import moment from "moment";
 import {
   handleCallClicked,
@@ -95,20 +94,14 @@ const Index = () => {
   const userAgentRef = useRef<any>(null);
   const callingSessionRef = useRef<any>(null);
 
-  const { getCallsLoading, callData, selectedChat, blindNumber } =
-    useAppSelector((state: any) => ({
-      getCallsLoading: state.CallHistory.getCallsLoading,
-      callData: state.CallHistory.callData,
-      dtmfSequence: state.CallHistory.dtmfSequence,
-      blindNumber: state.CallHistory.blindNumber,
-      selectedChat: state.Chats.selectedChat,
-    }));
+  const getCallsLoading = useAppSelector((state: any) => state.CallHistory.getCallsLoading);
+  const callData = useAppSelector((state: any) => state.CallHistory.callData);
+  const blindNumber = useAppSelector((state: any) => state.CallHistory.blindNumber);
+  const selectedChat = useAppSelector((state: any) => state.Chats.selectedChat);
 
   const isBusy = useSelector((state: any) => state.CallHistory.getCallsLoading);
 
-  const { callDetail } = useSelector((state: any) => ({
-    callDetail: state.CallHistory.callData,
-  }));
+  const callDetail = useSelector((state: any) => state.CallHistory.callData);
 
   const onCloseAudio = () => {
     dispatch(handleCallConferenceClicked(null));
@@ -154,12 +147,6 @@ const Index = () => {
       setIsActive(false);
 
       dispatch({ type: "SET_ACTIVE_STATUS", payload: false });
-      // try {
-      //   const response = await axios.get(
-      //     `https://pbxbackend.callanalog.com/public/api/UnregisterSip/${userData?.user?.name}`,
-      //   );
-      //   return response.data;
-      // } catch (error: any) { }
     });
 
     const intervalId = setInterval(() => {
@@ -187,6 +174,7 @@ const Index = () => {
               status_code: 486,
               reason_phrase: "Busy Here",
             });
+
             const newCall = {
               name:
                 data?.request?.from?._uri._user ==
@@ -217,7 +205,7 @@ const Index = () => {
               incomingSession._id.indexOf("@"),
             ),
             direction: "incoming",
-            number: data?.request?.from?._display_name,
+            number: data?.request?.from?._uri._user,
             startTime: "",
             endTime: "",
             status: "calling",
@@ -226,6 +214,7 @@ const Index = () => {
           dispatch(setIsCalling(true));
           dispatch(setCallsHistory(newCall));
           sound.play();
+
           incomingSession.on("accepted", () => {
             dispatch(startTimer());
             timerRef.current = setInterval(() => {
@@ -248,7 +237,7 @@ const Index = () => {
                   data?.request?.from?._display_name
                   ? ""
                   : data?.request?.from?._uri._user,
-              number: data?.request?.from?._display_name,
+              number: data?.request?.from?._uri._user,
               id: incomingSession._id.substring(
                 0,
                 incomingSession._id.indexOf("@"),
@@ -257,6 +246,7 @@ const Index = () => {
               status: "talking",
               direction: "incoming",
             };
+
             dispatch(setCallsHistory(newCall));
             setUser(newCall);
             dispatch(handleCallTransferClicked(null));
@@ -272,7 +262,7 @@ const Index = () => {
                   data?.request?.from?._display_name
                   ? ""
                   : data?.request?.from?._uri._user,
-              number: data?.request?.from?._display_name,
+              number: data?.request?.from?._uri._user,
               id: incomingSession._id.substring(
                 0,
                 incomingSession._id.indexOf("@"),
@@ -303,7 +293,7 @@ const Index = () => {
                   data?.request?.from?._display_name
                   ? ""
                   : data?.request?.from?._uri._user,
-              number: data?.request?.from?._display_name,
+              number: data?.request?.from?._uri._user,
               id: incomingSession._id.substring(
                 0,
                 incomingSession._id.indexOf("@"),
@@ -583,7 +573,6 @@ const Index = () => {
         session={session}
         setSession={setSession}
         incomingSession={callingSessionRef.current}
-        userAgentSession={userAgentSession}
         toggleMicrophone={toggleMicrophone}
         micMute={micMute}
         callHold={callHold}

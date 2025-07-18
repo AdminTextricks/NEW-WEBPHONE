@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 // hooks
 import { useRedux } from "../../../hooks/index";
@@ -18,44 +18,32 @@ import { CallItem } from "../../../data/calls";
 import DialPadModal from "../../../components/DialPadModal";
 
 const Index = () => {
-
   const { dispatch, useAppSelector } = useRedux();
 
-  const { calls, getCallsLoading } = useAppSelector((state: any) => ({
-    getCallsLoading: state.Calls.getCallsLoading,
-    calls: state.CallHistory.call_list,
-  }));
+  const [isOpenAudioModal, setIsOpenAudioModal] = useState(false);
 
-  // get user calls
+  const getCallsLoading = useAppSelector((state: any) => state.Calls.getCallsLoading);
+  const calls: CallItem[] = useAppSelector((state: any) => state.CallHistory.call_list);
+
   useEffect(() => {
     dispatch(getCalls());
   }, [dispatch]);
 
-  const [callsList, setCallsList] = useState([]);
-  const [isOpenAudioModal, setIsOpenAudioModal] = useState<boolean>(false);
-
-  const onOpenAudio = () => {
-    setIsOpenAudioModal(true);
-  };
-  
-  const onCloseAudio = () => {
-    setIsOpenAudioModal(false);
-  };
-
-  useEffect(() => {
-    setCallsList(calls);
+  const sortedCalls = useMemo(() => {
+    if (!Array.isArray(calls)) return [];
+    return [...calls].sort((a, b) => {
+      const dateA = new Date(a.startTime?.split(" ").join("T") || "").getTime();
+      const dateB = new Date(b.startTime?.split(" ").join("T") || "").getTime();
+      return dateB - dateA;
+    });
   }, [calls]);
 
   return (
     <div className="position-relative">
       {getCallsLoading && <Loader />}
-      <DialPadModal isOpen={isOpenAudioModal} onClose={onCloseAudio} />
-      <div
-        className="px-4 pt-4"
-        style={{
-          height: "10vh",
-        }}
-      >
+      <DialPadModal isOpen={isOpenAudioModal} onClose={() => setIsOpenAudioModal(false)} />
+
+      <div className="px-4 pt-4" style={{ height: "10vh" }}>
         <div className="d-flex align-items-start">
           <div className="flex-grow-1">
             <h4 className="mb-4">Calls</h4>
@@ -65,7 +53,7 @@ const Index = () => {
               <Button
                 color="primary"
                 type="button"
-                onClick={onOpenAudio}
+                onClick={() => setIsOpenAudioModal(true)}
                 className="btn btn-soft-primary btn-sm"
               >
                 <MdDialpad />
@@ -79,24 +67,16 @@ const Index = () => {
       </div>
 
       <AppSimpleBar
-        style={{
-          height: "90vh",
-        }}
+        style={{ height: "90vh" }}
         className="chat-message-list chat-call-list"
       >
-        <ul className="list-unstyled chat-list">
-          {(callsList || [])
-            .sort((a: CallItem, b: CallItem) => {
-              const dateA = new Date(a.startTime?.split(" ").join("T"));
-              const dateB = new Date(b.endTime?.split(" ").join("T"));
-              return dateB.getTime() - dateA.getTime(); // Descending order
-            })
-            .map((call, key) => (
+        {sortedCalls.length > 0 ? (
+          <ul className="list-unstyled chat-list">
+            {sortedCalls.map((call, key) => (
               <Call call={call} key={key} />
             ))}
-        </ul>
-
-        {callsList?.length === 0 && (
+          </ul>
+        ) : (
           <div
             className="rounded p-4 text-center border-top"
             style={{
